@@ -7,14 +7,31 @@ namespace DatabaseBackupTools.UnitTests
     public class MainForm
     {
         [TestMethod]
-        public void GetDatabases_ListIsEmpty_ReturnsEmptyList()
+        public void GetDatabases_ListIsNotEmpty_ReturnsNonNullList()
         {
+            // Arrange
+            var mainform = new DatabaseBackupTool.MainForm();
+            mainform.InitializeConnection();
+            // Act
+            var result = mainform.GetDatabases();
 
+
+            // Assert
+            Assert.IsTrue(result != null);
         }
-        [TestMethod] 
-        public void GetDatabases_ListIsNotEmpty_ReturnsNonEmptyList()
+        [TestMethod]
+        public void GetDatabases_ListIsEmpty_ReturnsNonNullList() /* This tests the method's catch block. 
+                                                                    We do not call mainform.InitializeConnection(), 
+                                                                    therefore it cannot connect to the database. */
         {
+            // Arrange
+            var mainform = new DatabaseBackupTool.MainForm();
 
+            // Act
+            var result = mainform.GetDatabases();
+
+            // Assert
+            Assert.IsTrue(result != null);
         }
     }
 }
