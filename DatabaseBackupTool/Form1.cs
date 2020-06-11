@@ -15,20 +15,25 @@ namespace DatabaseBackupTool
 {
     public partial class MainForm : Form
     {
-        SQLConnector connector;
         ErrorForm ef;
+        SQLConnector connector;
         public MainForm()
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
         }
 
+        public void InitializeConnection()
+        {
+            connector = new SQLConnector("");
+            connector.InitializeConnection();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             // Connect to (local)\SQLEXPRESS
             // Find list of all database names 
-            connector = new SQLConnector("");
-            connector.InitializeConnection();
+            InitializeConnection();
             foreach(String s in GetDatabases())
             {
                 databaseList.Items.Add(s);
@@ -40,26 +45,34 @@ namespace DatabaseBackupTool
             Console.WriteLine("Closing"); 
         }
 
-        private List<String> GetDatabases()
+        public List<String> GetDatabases()
         {
             List<String> databases = new List<String>();
-            if (connector.Open()) {
-
-                var reader = connector.ReadResults(connector.CreateCommand("SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')"));
-                while (reader.Read())
+            try
+            {
+                if (connector.Open())
                 {
-                    databases.Add(reader[0].ToString());
+                    var reader = connector.ReadResults(connector.CreateCommand("SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')"));
+                    while (reader.Read())
+                    {
+                        databases.Add(reader[0].ToString());
+                    }
+                    reader.Close();
+                    if (connector.GetConnectionState() == ConnectionState.Open)
+                    {
+                        connector.Close();
+                    }
                 }
-                reader.Close();
-                if (connector.GetConnectionState() == ConnectionState.Open)
-                {
-                    connector.Close();
-                }
+                return databases;
             }
-            return databases;
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e}: There was an error while retrieving the database list.");
+                return databases;
+            }
         }
         
-        private void MoveSelectedItems(string direction, bool all=false)
+        public void MoveSelectedItems(string direction, bool all=false)
         {
 
             List<String> movedList = new List<String>();
@@ -151,7 +164,7 @@ namespace DatabaseBackupTool
             BackupDatabases();
         }
 
-        private void BackupDatabases()
+        public void BackupDatabases()
         {
             // Start Backing up selected DBs
             foreach (String s in backupList.Items)
