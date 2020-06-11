@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DatabaseBackupTools.UnitTests
 {
     [TestClass]
-    public class MainForm
+    public class MainFormTests
     {
         [TestMethod]
         public void GetDatabases_ListIsNotEmpty_ReturnsNonNullList()
