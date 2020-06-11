@@ -167,9 +167,21 @@ namespace DatabaseBackupTool
         public void BackupDatabases()
         {
             // Start Backing up selected DBs
+            if(backupList.Items.Count > 0)
+            {
+                backupProgressBar.Visible = true;
+                backupProgressBar.Minimum = 1;
+                backupProgressBar.Maximum = backupList.Items.Count;
+                backupProgressBar.Step = 1;
+                backupProgressBar.Value = 1;
+            } else
+            {
+                return;
+            }
+
+
             foreach (String s in backupList.Items)
             {
-
                 if (connector.Open())
                 {
                     try
@@ -189,6 +201,11 @@ namespace DatabaseBackupTool
                         break;
                     }
                 }
+                if (backupProgressBar.Value == backupProgressBar.Maximum)
+                {
+                    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
+                }
+                backupProgressBar.PerformStep();
             }
         }
 
