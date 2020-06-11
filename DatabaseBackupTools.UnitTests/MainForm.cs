@@ -7,7 +7,12 @@ namespace DatabaseBackupTools.UnitTests
     public class MainForm
     {
         [TestMethod]
-        public void TestMethod1()
+        public void GetDatabases_ListIsEmpty_ReturnsEmptyList()
+        {
+
+        }
+        [TestMethod] 
+        public void GetDatabases_ListIsNotEmpty_ReturnsNonEmptyList()
         {
 
         }
