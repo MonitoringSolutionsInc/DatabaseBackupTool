@@ -13,11 +13,11 @@ using SqlConnector;
 
 namespace DatabaseBackupTool
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         SQLConnector connector;
         ErrorForm ef;
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
