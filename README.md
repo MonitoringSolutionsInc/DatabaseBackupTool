@@ -8,7 +8,7 @@ Download the Build folder or clone the repository.
 
 ## Usage
 
-Simply run the DatabaseBackupTool.exe
+Simply run the DatabaseBackupTool.exe. Use the buttons marked with arrows to move the databases from the view list to the "backup" list.
 
 ![Main GUI Form](/images/main.png)
 
