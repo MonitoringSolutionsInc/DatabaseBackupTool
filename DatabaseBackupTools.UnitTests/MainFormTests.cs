@@ -15,7 +15,6 @@ namespace DatabaseBackupTools.UnitTests
             // Act
             var result = mainform.GetDatabases();
 
-
             // Assert
             Assert.IsTrue(result != null);
         }
