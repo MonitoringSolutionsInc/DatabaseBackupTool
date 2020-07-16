@@ -186,8 +186,11 @@ namespace DatabaseBackupTool
                 {
                     try
                     {
-                        string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
-                        var reader = connector.ReadResults(connector.CreateCommand(sql));
+                        string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\' WITH INIT";
+                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
+                        var command = connector.CreateCommand(sql);
+                        command.CommandTimeout = 0;
+                        var reader = connector.ReadResults(command);
                         if (connector.GetConnectionState() == ConnectionState.Open)
                         {
                             connector.Close();
