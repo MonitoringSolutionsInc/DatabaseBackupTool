@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseBackupTool", "DatabaseBackupTool\DatabaseBackupTool.csproj", "{C62441B4-4BF7-437A-8035-01DE8DE66B0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseToolKit", "DatabaseBackupTool\DatabaseToolKit.csproj", "{C62441B4-4BF7-437A-8035-01DE8DE66B0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseBackupTools.UnitTests", "DatabaseBackupTools.UnitTests\DatabaseBackupTools.UnitTests.csproj", "{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseToolKit.UnitTests", "DatabaseBackupTools.UnitTests\DatabaseToolKit.UnitTests.csproj", "{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

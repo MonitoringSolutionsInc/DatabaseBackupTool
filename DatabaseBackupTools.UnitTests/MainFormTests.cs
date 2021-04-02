@@ -10,7 +10,7 @@ namespace DatabaseBackupTools.UnitTests
         public void GetDatabases_ListIsNotEmpty_ReturnsNonNullList()
         {
             // Arrange
-            var mainform = new DatabaseBackupTool.MainForm();
+            var mainform = new DatabaseBackupTool.Backup();
             mainform.InitializeConnection();
             // Act
             var result = mainform.GetDatabases();
@@ -24,7 +24,7 @@ namespace DatabaseBackupTools.UnitTests
                                                                     therefore it cannot connect to the database. */
         {
             // Arrange
-            var mainform = new DatabaseBackupTool.MainForm();
+            var mainform = new DatabaseBackupTool.Backup();
 
             // Act
             var result = mainform.GetDatabases();

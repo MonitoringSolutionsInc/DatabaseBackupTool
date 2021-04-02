@@ -1,6 +1,6 @@
 ﻿namespace DatabaseBackupTool
 {
-    partial class MainForm
+    partial class Backup
     {
         /// <summary>
         /// Required designer variable.
