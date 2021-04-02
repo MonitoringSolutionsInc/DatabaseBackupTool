@@ -8,7 +8,7 @@ Download the Build folder or clone the repository.
 
 ## Usage
 
-Simply run the DatabaseBackupTool.exe. Use the buttons marked with arrows to move the databases from the view list to the "backup" list. Once the desired database names are located under the "backup" list. Select the desired backup path and then click "Start Backup". 
+Simply run the DatabaseBackupTool.exe. Use the buttons marked with arrows to move the databases from the "Databases On Disk" list to the "To Backup" list. Once the desired database names are located under the "backup" list. Select the desired backup path and then click "Start Backup". 
 
 ![Main GUI Form](/images/main.png)
 
