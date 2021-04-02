@@ -26,7 +26,8 @@ namespace DatabaseBackupTool
 
         private void restoreBackupToolBtn_Click(object sender, EventArgs e)
         {
-
+            Restore restore = new Restore();
+            restore.ShowDialog();
         }
     }
 }
