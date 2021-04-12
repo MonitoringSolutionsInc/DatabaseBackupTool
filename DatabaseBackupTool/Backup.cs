@@ -21,6 +21,7 @@ namespace DatabaseBackupTool
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            backgroundWorker1.WorkerReportsProgress = true;
         }
 
         public void InitializeConnection()
@@ -156,59 +157,15 @@ namespace DatabaseBackupTool
             {
                 databaseList.Items.Add(s);
             }
-
         }
 
         private void startBackUp_Click(object sender, EventArgs e)
         {
-            BackupDatabases();
-        }
-
-        public void BackupDatabases()
-        {
-            // Start Backing up selected DBs
-            if(backupList.Items.Count > 0)
+            if (backgroundWorker1.IsBusy != true)
             {
-                backupProgressBar.Visible = true;
-                backupProgressBar.Minimum = 1;
-                backupProgressBar.Maximum = backupList.Items.Count;
-                backupProgressBar.Step = 1;
-                backupProgressBar.Value = 1;
-            } else
-            {
-                return;
-            }
-
-
-            foreach (String s in backupList.Items)
-            {
-                if (connector.Open())
-                {
-                    try
-                    {
-                        string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\' WITH INIT";
-                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
-                        var command = connector.CreateCommand(sql);
-                        command.CommandTimeout = 0;
-                        var reader = connector.ReadResults(command);
-                        if (connector.GetConnectionState() == ConnectionState.Open)
-                        {
-                            connector.Close();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        connector.Close();
-                        ef = new ErrorForm(e);
-                        ef.Show();
-                        break;
-                    }
-                }
-                if (backupProgressBar.Value == backupProgressBar.Maximum)
-                {
-                    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
-                }
-                backupProgressBar.PerformStep();
+                backupProgressBar.Value = 0;
+                startBackUp.Enabled = false;
+                backgroundWorker1.RunWorkerAsync();
             }
         }
 
@@ -230,6 +187,58 @@ namespace DatabaseBackupTool
             {
                 backupDirectoryTextBox.Text = "C:\\CEMDAS\\temp";
             }
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            for(int i = 0; i < backupList.Items.Count; i++)
+            {
+                if (connector.Open())
+                {
+                    try
+                    {
+                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
+                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
+                        var command = connector.CreateCommand(sql);
+                        command.CommandTimeout = 0;
+                        var reader = connector.ReadResults(command);
+                        if (connector.GetConnectionState() == ConnectionState.Open)
+                        {
+                            connector.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        connector.Close();
+                        ef = new ErrorForm(ex);
+                        ef.Show();
+                        break;
+                    }
+                }
+                if (backupProgressBar.Value == backupProgressBar.Maximum)
+                {
+                    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
+                }
+                int percentComplete =
+                                    (int)((float)i / (float)(backupList.Items.Count) * 100);
+                Console.WriteLine($"{percentComplete}% Finished");
+                worker.ReportProgress(percentComplete);
+            }
+        }
+
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            backupProgressBar.Value = e.ProgressPercentage;
+            progressBarLabel.Text = $"{e.ProgressPercentage}% Complete";
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            startBackUp.Enabled = true;
+            backupProgressBar.Value = 100;
+            progressBarLabel.Text = $"100% Complete";
         }
     }
 }
