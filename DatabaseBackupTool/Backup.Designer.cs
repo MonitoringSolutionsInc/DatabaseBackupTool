@@ -44,6 +44,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.backupProgressBar = new System.Windows.Forms.ProgressBar();
             this.progressBarLabel = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // RefreshDBs
@@ -138,6 +139,7 @@
             // 
             // backupDirectoryTextBox
             // 
+            this.backupDirectoryTextBox.Enabled = false;
             this.backupDirectoryTextBox.Location = new System.Drawing.Point(16, 330);
             this.backupDirectoryTextBox.Name = "backupDirectoryTextBox";
             this.backupDirectoryTextBox.Size = new System.Drawing.Size(352, 20);
@@ -198,7 +200,13 @@
             this.progressBarLabel.TabIndex = 15;
             this.progressBarLabel.Text = "Progress";
             // 
-            // MainForm
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // Backup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -220,7 +228,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.RefreshDBs);
             this.MaximizeBox = false;
-            this.Name = "MainForm";
+            this.Name = "Backup";
             this.Text = "Database Backup Tool";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
@@ -246,6 +254,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ProgressBar backupProgressBar;
         private System.Windows.Forms.Label progressBarLabel;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 
