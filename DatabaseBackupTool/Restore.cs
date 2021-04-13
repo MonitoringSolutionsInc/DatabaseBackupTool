@@ -27,7 +27,7 @@ namespace DatabaseBackupTool
 
         private void startRestore_Click(object sender, EventArgs e)
         {
-            if(backgroundWorker1.IsBusy != true)
+            if(!backgroundWorker1.IsBusy)
             {
                 progressBar1.Value = 0;
                 startRestore.Enabled = false;
