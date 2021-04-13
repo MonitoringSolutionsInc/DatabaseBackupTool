@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.DirectoryServices;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -51,17 +52,17 @@ namespace DatabaseBackupTool
             List<String> databases = new List<String>();
             try
             {
-                if (connector.Open())
+                if (Connection.PrimaryConnection.Open())
                 {
-                    var reader = connector.ReadResults(connector.CreateCommand("SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')"));
+                    var reader = Connection.PrimaryConnection.ReadResults(Connection.PrimaryConnection.CreateCommand("SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')"));
                     while (reader.Read())
                     {
                         databases.Add(reader[0].ToString());
                     }
                     reader.Close();
-                    if (connector.GetConnectionState() == ConnectionState.Open)
+                    if (Connection.PrimaryConnection.GetConnectionState() == ConnectionState.Open)
                     {
-                        connector.Close();
+                        Connection.PrimaryConnection.Close();
                     }
                 }
                 return databases;
@@ -178,6 +179,7 @@ namespace DatabaseBackupTool
         private void chooseDirectoryButton_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.SelectedPath = $@"\\{Connection.DataSource}";
             fbd.ShowDialog();
             backupDirectoryTextBox.Text = fbd.SelectedPath;
         }
@@ -201,23 +203,36 @@ namespace DatabaseBackupTool
 
             for(int i = 0; i < backupList.Items.Count; i++)
             {
-                if (connector.Open())
+                try
+                {
+                    if (!Directory.Exists($@"\\{Connection.DataSource}\{backupDirectoryTextBox.Text}"))
+                    {
+                        throw new BackupDirectoryNotFoundException("Backup was NOT completed. The path selected seems to not exist. If you're connected to a remote machine make sure you're backing up to an existing directory on the remote machine.");
+                    }
+                } catch (BackupDirectoryNotFoundException ex)
+                {
+                    ErrorForm e_form = new ErrorForm(ex);
+                    e_form.ShowDialog();
+                    break;
+                }
+
+                if (Connection.PrimaryConnection.Open())
                 {
                     try
                     {
                         string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
                         // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
-                        var command = connector.CreateCommand(sql);
+                        var command = Connection.PrimaryConnection.CreateCommand(sql);
                         command.CommandTimeout = 0;
-                        var reader = connector.ReadResults(command);
-                        if (connector.GetConnectionState() == ConnectionState.Open)
+                        var reader = Connection.PrimaryConnection.ReadResults(command);
+                        if (Connection.PrimaryConnection.GetConnectionState() == ConnectionState.Open)
                         {
-                            connector.Close();
+                            Connection.PrimaryConnection.Close();
                         }
                     }
                     catch (Exception ex)
                     {
-                        connector.Close();
+                        Connection.PrimaryConnection.Close();
                         ef = new ErrorForm(ex);
                         ef.Show();
                         break;
@@ -251,6 +266,12 @@ namespace DatabaseBackupTool
             chooseDirectoryButton.Enabled = true;
             backupProgressBar.Value = 100;
             progressBarLabel.Text = $"100% Complete";
+        }
+    }
+    class BackupDirectoryNotFoundException : Exception { 
+        public BackupDirectoryNotFoundException(string message): base(message)
+        {
+
         }
     }
 }
