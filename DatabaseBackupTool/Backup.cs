@@ -165,6 +165,12 @@ namespace DatabaseBackupTool
             {
                 backupProgressBar.Value = 0;
                 startBackUp.Enabled = false;
+                RefreshDBs.Enabled = false;
+                MoveSelectRight.Enabled = false;
+                MoveSelectLeft.Enabled = false;
+                MoveAllLeft.Enabled = false;
+                MoveAllRight.Enabled = false;
+                chooseDirectoryButton.Enabled = false;
                 backgroundWorker1.RunWorkerAsync();
             }
         }
@@ -237,6 +243,12 @@ namespace DatabaseBackupTool
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             startBackUp.Enabled = true;
+            RefreshDBs.Enabled = true;
+            MoveSelectRight.Enabled = true;
+            MoveSelectLeft.Enabled = true;
+            MoveAllLeft.Enabled = true;
+            MoveAllRight.Enabled = true;
+            chooseDirectoryButton.Enabled = true;
             backupProgressBar.Value = 100;
             progressBarLabel.Text = $"100% Complete";
         }
