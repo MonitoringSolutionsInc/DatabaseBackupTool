@@ -41,34 +41,43 @@ namespace DatabaseBackupTool
             BackgroundWorker worker = sender as BackgroundWorker;
 
             SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-            string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-
-            for (int i = 0; i < filesToRestore.Length - 1; i++)
+            try
             {
-                string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
-                string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
-                SQLConnector conn = null;
-                    try
-                    {
-                        conn = new SQLConnector("");
-                        conn.InitializeConnection();
-                        conn.Open();
-                        conn.ReadResults(conn.CreateCommand(restoreSql));
-                        conn.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+
+
+                for (int i = 0; i < filesToRestore.Length - 1; i++)
+                {
+                    string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
+                    string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
+                    SQLConnector conn = null;
+                        try
                         {
+                            conn = new SQLConnector("");
+                            conn.InitializeConnection();
+                            conn.Open();
+                            conn.ReadResults(conn.CreateCommand(restoreSql));
                             conn.Close();
                         }
-                        ErrorForm ef = new ErrorForm(ex);
-                        ef.Show();
-                    }
-                int percentComplete =
-                                    (int)((float)i / (float)(filesToRestore.Length - 1) * 100); 
-                Console.WriteLine($"{percentComplete}% Finished");
-                worker.ReportProgress(percentComplete);
+                        catch (Exception ex)
+                        {
+                            if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                            {
+                                conn.Close();
+                            }
+                            ErrorForm ef = new ErrorForm(ex);
+                            ef.Show();
+                        }
+                    int percentComplete =
+                                        (int)((float)i / (float)(filesToRestore.Length - 1) * 100); 
+                    Console.WriteLine($"{percentComplete}% Finished");
+                    worker.ReportProgress(percentComplete);
+                }
+            }
+            catch (System.IO.DirectoryNotFoundException)
+            {
+                Console.WriteLine("Error caught");
+
             }
         }
 
