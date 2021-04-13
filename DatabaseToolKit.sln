@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseToolKit", "DatabaseBackupTool\DatabaseToolKit.csproj", "{C62441B4-4BF7-437A-8035-01DE8DE66B0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseToolKit.UnitTests", "DatabaseBackupTools.UnitTests\DatabaseToolKit.UnitTests.csproj", "{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{C62441B4-4BF7-437A-8035-01DE8DE66B0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C62441B4-4BF7-437A-8035-01DE8DE66B0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C62441B4-4BF7-437A-8035-01DE8DE66B0C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E14EACA-5B5E-4A6C-ABEF-D3C0003F8A2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
