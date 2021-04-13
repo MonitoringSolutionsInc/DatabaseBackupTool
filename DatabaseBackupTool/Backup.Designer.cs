@@ -45,6 +45,8 @@
             this.backupProgressBar = new System.Windows.Forms.ProgressBar();
             this.progressBarLabel = new System.Windows.Forms.Label();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.filterTextBox = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // RefreshDBs
@@ -206,11 +208,30 @@
             this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
+            // filterTextBox
+            // 
+            this.filterTextBox.Location = new System.Drawing.Point(251, 35);
+            this.filterTextBox.Name = "filterTextBox";
+            this.filterTextBox.Size = new System.Drawing.Size(100, 20);
+            this.filterTextBox.TabIndex = 16;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(166, 38);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(79, 13);
+            this.label5.TabIndex = 17;
+            this.label5.Text = "Filter Selection:";
+            // 
             // Backup
             // 
+            this.AcceptButton = this.RefreshDBs;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(380, 431);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.filterTextBox);
             this.Controls.Add(this.progressBarLabel);
             this.Controls.Add(this.backupProgressBar);
             this.Controls.Add(this.label4);
@@ -255,6 +276,8 @@
         private System.Windows.Forms.ProgressBar backupProgressBar;
         private System.Windows.Forms.Label progressBarLabel;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.TextBox filterTextBox;
+        private System.Windows.Forms.Label label5;
     }
 }
 
