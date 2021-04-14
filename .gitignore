@@ -339,3 +339,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /DatabaseBackupTools.UnitTests
+/Build/nunit.framework.xml
+/Build/nunit.framework.dll
+/Build/DatabaseBackupTool.exe.config
