@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlConnectorTests", "SqlConnectorTests\SqlConnectorTests.csproj", "{4E03284C-3924-4C1D-978C-B4D197D36E9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlConnector", "SqlConnector\SqlConnector.csproj", "{FB980E16-F3A0-4DFD-8B9E-4AC529FE2FA7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E03284C-3924-4C1D-978C-B4D197D36E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E03284C-3924-4C1D-978C-B4D197D36E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E03284C-3924-4C1D-978C-B4D197D36E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E03284C-3924-4C1D-978C-B4D197D36E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB980E16-F3A0-4DFD-8B9E-4AC529FE2FA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB980E16-F3A0-4DFD-8B9E-4AC529FE2FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB980E16-F3A0-4DFD-8B9E-4AC529FE2FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB980E16-F3A0-4DFD-8B9E-4AC529FE2FA7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1B0B01B-316B-4C67-8BED-C63BB0C7C748}
+	EndGlobalSection
+EndGlobal
