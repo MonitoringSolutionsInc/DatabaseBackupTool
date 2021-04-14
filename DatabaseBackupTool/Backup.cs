@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SqlConnector; 
+using SqlConnector;
 
 namespace DatabaseBackupTool
 {
@@ -17,6 +17,7 @@ namespace DatabaseBackupTool
     {
         ErrorForm ef;
         SQLConnector connector;
+        static public string default_text = "Default Text...";
         public Backup()
         {
             InitializeComponent();
@@ -35,25 +36,57 @@ namespace DatabaseBackupTool
             // Connect to (local)\SQLEXPRESS
             // Find list of all database names 
             InitializeConnection();
-            foreach(String s in GetDatabases())
+            foreach (String s in GetDatabases())
             {
                 databaseList.Items.Add(s);
             }
+
+            // handles the default gray text
+            // it going away upon entering the text box
+            // and it coming back if textbox is empty upon leaving it
+            this.filterTextBox.Enter += new EventHandler(filterTextBox_Enter);
+            this.filterTextBox.Leave += new EventHandler(filterTextBox_Leave);
+            filterTextBox_SetText();
+        }
+
+        private void filterTextBox_Enter(object sender, EventArgs e)
+        {
+            if (filterTextBox.ForeColor == Color.Black)
+                return;
+            filterTextBox.Text = "";
+            filterTextBox.ForeColor = Color.Black;
+        }
+
+        private void filterTextBox_Leave(object sender, EventArgs e)
+        {
+            if (filterTextBox.Text.Trim() == "")
+                filterTextBox_SetText();
+        }
+
+        private void filterTextBox_SetText()
+        {
+            this.filterTextBox.Text = default_text;
+            filterTextBox.ForeColor = Color.Gray;
         }
 
         private void Form1_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Console.WriteLine("Closing"); 
+            Console.WriteLine("Closing");
         }
 
         public List<String> GetDatabases()
         {
             List<String> databases = new List<String>();
+            string sqlCommand;//System.Data.SqlClient.SqlDataReader reader;
             try
             {
                 if (connector.Open())
                 {
-                    var reader = connector.ReadResults(connector.CreateCommand("SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')"));
+                    if (filterTextBox.Text == default_text)
+                        sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')";
+                    else
+                        sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb') AND name LIKE '%" + filterTextBox.Text + "%'";
+                    var reader = connector.ReadResults(connector.CreateCommand(sqlCommand));
                     while (reader.Read())
                     {
                         databases.Add(reader[0].ToString());
@@ -72,8 +105,8 @@ namespace DatabaseBackupTool
                 return databases;
             }
         }
-        
-        public void MoveSelectedItems(string direction, bool all=false)
+
+        public void MoveSelectedItems(string direction, bool all = false)
         {
 
             List<String> movedList = new List<String>();
@@ -86,39 +119,40 @@ namespace DatabaseBackupTool
                         databaseList.SetSelected(entry, true);
                     }
                 }
-                foreach(String s in databaseList.SelectedItems)
+                foreach (String s in databaseList.SelectedItems)
                 {
                     if (!backupList.Items.Contains(s))
                     {
                         movedList.Add(s);
                     }
                 }
-                foreach(String s in movedList)
+                foreach (String s in movedList)
                 {
                     backupList.Items.Add(s);
-                    if (databaseList.Items.Contains(s)){
+                    if (databaseList.Items.Contains(s))
+                    {
                         databaseList.Items.Remove(s);
                     }
                 }
-                
-            } 
+
+            }
             else if (direction == "left")
             {
-                if(all) // If moving all items left.
+                if (all) // If moving all items left.
                 {
                     for (int entry = 0; entry < backupList.Items.Count; entry++)
                     {
                         backupList.SetSelected(entry, true);
                     }
                 }
-                foreach(String s in backupList.SelectedItems)
+                foreach (String s in backupList.SelectedItems)
                 {
                     if (!databaseList.Items.Contains(s))
                     {
                         movedList.Add(s);
                     }
                 }
-                foreach(String s in movedList)
+                foreach (String s in movedList)
                 {
                     databaseList.Items.Add(s);
                     if (backupList.Items.Contains(s))
@@ -153,7 +187,7 @@ namespace DatabaseBackupTool
             databaseList.Items.Clear();
             backupList.Items.Clear();
 
-            foreach(String s in GetDatabases())
+            foreach (String s in GetDatabases())
             {
                 databaseList.Items.Add(s);
             }
@@ -189,7 +223,7 @@ namespace DatabaseBackupTool
 
         private void backupDirectoryTextBox_TextChanged(object sender, EventArgs e)
         {
-            if(backupDirectoryTextBox.Text == "")
+            if (backupDirectoryTextBox.Text == "")
             {
                 backupDirectoryTextBox.Text = "C:\\CEMDAS\\temp";
             }
@@ -199,7 +233,7 @@ namespace DatabaseBackupTool
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
-            for(int i = 0; i < backupList.Items.Count; i++)
+            for (int i = 0; i < backupList.Items.Count; i++)
             {
                 if (connector.Open())
                 {
