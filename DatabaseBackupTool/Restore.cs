@@ -27,7 +27,7 @@ namespace DatabaseBackupTool
 
         private void startRestore_Click(object sender, EventArgs e)
         {
-            if(!backgroundWorker1.IsBusy)
+            if (!backgroundWorker1.IsBusy)
             {
                 progressBar1.Value = 0;
                 startRestore.Enabled = false;
@@ -48,25 +48,25 @@ namespace DatabaseBackupTool
                 string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
                 string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
                 SQLConnector conn = null;
-                    try
+                try
+                {
+                    conn = new SQLConnector("");
+                    conn.InitializeConnection();
+                    conn.Open();
+                    conn.ReadResults(conn.CreateCommand(restoreSql));
+                    conn.Close();
+                }
+                catch (Exception ex)
+                {
+                    if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
                     {
-                        conn = new SQLConnector("");
-                        conn.InitializeConnection();
-                        conn.Open();
-                        conn.ReadResults(conn.CreateCommand(restoreSql));
                         conn.Close();
                     }
-                    catch (Exception ex)
-                    {
-                        if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
-                        {
-                            conn.Close();
-                        }
-                        ErrorForm ef = new ErrorForm(ex);
-                        ef.Show();
-                    }
+                    ErrorForm ef = new ErrorForm(ex);
+                    ef.Show();
+                }
                 int percentComplete =
-                                    (int)((float)i / (float)(filesToRestore.Length - 1) * 100); 
+                                    (int)(i / (float)(filesToRestore.Length - 1) * 100);
                 Console.WriteLine($"{percentComplete}% Finished");
                 worker.ReportProgress(percentComplete);
             }

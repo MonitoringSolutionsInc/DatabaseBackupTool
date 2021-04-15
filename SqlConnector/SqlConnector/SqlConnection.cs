@@ -1,12 +1,6 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SqlConnector
 {
@@ -29,7 +23,7 @@ namespace SqlConnector
         /// Initializes the connection object. Returns True if connection string was not empty or null.
         /// </summary>
         /// <returns>Boolean</returns>
-        public Boolean InitializeConnection()
+        public bool InitializeConnection()
         {
             if (connectionString != "" && connectionString != null)
             {
@@ -41,12 +35,13 @@ namespace SqlConnector
                 return false;
             }
         }
-        public Boolean Open(bool capture)
+        public bool Open(bool capture)
         {
             if (capture)
             {
                 return Open();
-            } else
+            }
+            else
             {
                 connection.Open();
                 return false;
@@ -56,7 +51,7 @@ namespace SqlConnector
         /// Attempts to open the SQL connection. Returns true upon success.
         /// </summary>
         /// <returns></returns>
-        public Boolean Open()
+        public bool Open()
         {
             try
             {
@@ -73,7 +68,7 @@ namespace SqlConnector
         /// Attempts to close the SQL Connection. Returns true upon success.
         /// </summary>
         /// <returns></returns>
-        public Boolean Close()
+        public bool Close()
         {
             try
             {
@@ -86,7 +81,7 @@ namespace SqlConnector
                 return false;
             }
         }
-        public Boolean Close(bool capture)
+        public bool Close(bool capture)
         {
             if (capture)
             {
@@ -118,8 +113,8 @@ namespace SqlConnector
         // TODO: Use DataTable to store SQL results.
         public SqlDataReader ReadResults(SqlCommand sqlCommand)
         {
-                SqlDataReader reader = sqlCommand.ExecuteReader();
-                return reader;
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+            return reader;
         }
         public ConnectionState GetConnectionState()
         {
@@ -128,14 +123,14 @@ namespace SqlConnector
     }
     public class NullQueryStringException : Exception
     {
-       public NullQueryStringException()
+        public NullQueryStringException()
         {
-            
+
         }
         public NullQueryStringException(string message)
     : base(message)
         {
-            
+
         }
         public NullQueryStringException(string message, Exception inner)
     : base(message, inner)
