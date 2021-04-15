@@ -302,6 +302,7 @@ namespace DatabaseBackupTool
             filterTextBox.Enabled = true;
             backupProgressBar.Value = 100;
             progressBarLabel.Text = $"100% Complete";
+            System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
         }
     }
 }
