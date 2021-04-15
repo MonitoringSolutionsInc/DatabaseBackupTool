@@ -1,17 +1,11 @@
-﻿using System;
+﻿using SqlConnector;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.DirectoryServices;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
-using System.Collections;
-using SqlConnector;
+using System.Windows.Forms;
 
 namespace DatabaseBackupTool
 {
@@ -38,7 +32,7 @@ namespace DatabaseBackupTool
             // Connect to (local)\SQLEXPRESS
             // Find list of all database names 
             InitializeConnection();
-            foreach (String s in GetDatabases())
+            foreach (string s in GetDatabases())
             {
                 databaseList.Items.Add(s);
             }
@@ -46,8 +40,8 @@ namespace DatabaseBackupTool
             // handles the default gray text
             // it going away upon entering the text box
             // and it coming back if textbox is empty upon leaving it
-            this.filterTextBox.Enter += new EventHandler(filterTextBox_Enter);
-            this.filterTextBox.Leave += new EventHandler(filterTextBox_Leave);
+            filterTextBox.Enter += new EventHandler(filterTextBox_Enter);
+            filterTextBox.Leave += new EventHandler(filterTextBox_Leave);
             filterTextBox_SetText();
         }
 
@@ -67,7 +61,7 @@ namespace DatabaseBackupTool
 
         private void filterTextBox_SetText()
         {
-            this.filterTextBox.Text = default_text;
+            filterTextBox.Text = default_text;
             filterTextBox.ForeColor = Color.Gray;
         }
 
@@ -76,9 +70,9 @@ namespace DatabaseBackupTool
             Console.WriteLine("Closing");
         }
 
-        public List<String> GetDatabases()
+        public List<string> GetDatabases()
         {
-            List<String> databases = new List<String>();
+            List<string> databases = new List<string>();
             string sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')";
             try
             {
@@ -109,7 +103,7 @@ namespace DatabaseBackupTool
         public void MoveSelectedItems(string direction, bool all = false)
         {
 
-            List<String> movedList = new List<String>();
+            List<string> movedList = new List<string>();
             if (direction == "right")
             {
                 if (all) // If moving all items to the right.
@@ -119,14 +113,14 @@ namespace DatabaseBackupTool
                         databaseList.SetSelected(entry, true);
                     }
                 }
-                foreach (String s in databaseList.SelectedItems)
+                foreach (string s in databaseList.SelectedItems)
                 {
                     if (!backupList.Items.Contains(s))
                     {
                         movedList.Add(s);
                     }
                 }
-                foreach (String s in movedList)
+                foreach (string s in movedList)
                 {
                     backupList.Items.Add(s);
                     if (databaseList.Items.Contains(s))
@@ -145,14 +139,14 @@ namespace DatabaseBackupTool
                         backupList.SetSelected(entry, true);
                     }
                 }
-                foreach (String s in backupList.SelectedItems)
+                foreach (string s in backupList.SelectedItems)
                 {
                     if (!databaseList.Items.Contains(s))
                     {
                         movedList.Add(s);
                     }
                 }
-                foreach (String s in movedList)
+                foreach (string s in movedList)
                 {
                     databaseList.Items.Add(s);
                     if (backupList.Items.Contains(s))
@@ -187,7 +181,7 @@ namespace DatabaseBackupTool
             databaseList.Items.Clear();
             backupList.Items.Clear();
 
-            foreach (String s in GetDatabases())
+            foreach (string s in GetDatabases())
             {
                 databaseList.Items.Add(s);
             }
@@ -277,7 +271,7 @@ namespace DatabaseBackupTool
                     MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 }
                 int percentComplete =
-                                    (int)((float)i / (float)(backupList.Items.Count) * 100);
+                                    (int)(i / (float)(backupList.Items.Count) * 100);
                 Console.WriteLine($"{percentComplete}% Finished");
                 worker.ReportProgress(percentComplete);
             }
