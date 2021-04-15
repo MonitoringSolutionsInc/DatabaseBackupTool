@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using System.Collections;
 using SqlConnector;
 
 namespace DatabaseBackupTool
@@ -77,15 +79,13 @@ namespace DatabaseBackupTool
         public List<String> GetDatabases()
         {
             List<String> databases = new List<String>();
-            string sqlCommand;//System.Data.SqlClient.SqlDataReader reader;
+            string sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')";
             try
             {
                 if (connector.Open())
                 {
-                    if (filterTextBox.Text == default_text)
-                        sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb')";
-                    else
-                        sqlCommand = "SELECT name FROM master.sys.databases where name NOT IN ('master','model','msdb','tempdb') AND name LIKE '%" + filterTextBox.Text + "%'";
+                    if (filterTextBox.Text != default_text)
+                        sqlCommand += " AND name LIKE '%" + filterTextBox.Text + "%'";
                     var reader = connector.ReadResults(connector.CreateCommand(sqlCommand));
                     while (reader.Read())
                     {
@@ -195,7 +195,7 @@ namespace DatabaseBackupTool
 
         private void startBackUp_Click(object sender, EventArgs e)
         {
-            if (backgroundWorker1.IsBusy != true)
+            if (!backgroundWorker1.IsBusy)
             {
                 backupProgressBar.Value = 0;
                 startBackUp.Enabled = false;
@@ -204,7 +204,22 @@ namespace DatabaseBackupTool
                 MoveSelectLeft.Enabled = false;
                 MoveAllLeft.Enabled = false;
                 MoveAllRight.Enabled = false;
+                backupDirectoryTextBox.Enabled = false;
+                filterTextBox.Enabled = false;
                 chooseDirectoryButton.Enabled = false;
+                try
+                {
+                    if (!Directory.Exists(backupDirectoryTextBox.Text)) //if directory does not exist
+                        Directory.CreateDirectory(backupDirectoryTextBox.Text);
+                }
+                catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+                {
+                    //show error box
+                    string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
+                    Exception myException = new Exception(myMessage);
+                    ef = new ErrorForm(myException);
+                    ef.Show();
+                }
                 backgroundWorker1.RunWorkerAsync();
             }
         }
@@ -283,6 +298,8 @@ namespace DatabaseBackupTool
             MoveAllLeft.Enabled = true;
             MoveAllRight.Enabled = true;
             chooseDirectoryButton.Enabled = true;
+            backupDirectoryTextBox.Enabled = true;
+            filterTextBox.Enabled = true;
             backupProgressBar.Value = 100;
             progressBarLabel.Text = $"100% Complete";
         }

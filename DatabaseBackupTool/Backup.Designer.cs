@@ -141,7 +141,6 @@
             // 
             // backupDirectoryTextBox
             // 
-            this.backupDirectoryTextBox.Enabled = false;
             this.backupDirectoryTextBox.Location = new System.Drawing.Point(16, 330);
             this.backupDirectoryTextBox.Name = "backupDirectoryTextBox";
             this.backupDirectoryTextBox.Size = new System.Drawing.Size(352, 20);
