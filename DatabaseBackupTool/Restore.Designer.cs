@@ -36,6 +36,7 @@ namespace DatabaseBackupTool
             this.label1 = new System.Windows.Forms.Label();
             this.recursiveBox = new System.Windows.Forms.CheckBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.progressBarLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -101,6 +102,11 @@ namespace DatabaseBackupTool
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            //
+            // backgroundWorker2
+            //
+            this.backgroundWorker2.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker2_DoWork);
+            this.backgroundWorker2.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker2_ProgressChanged);
             // 
             // progressBar1
             // 
@@ -147,6 +153,7 @@ namespace DatabaseBackupTool
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox recursiveBox;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label progressBarLabel;
     }
