@@ -17,6 +17,9 @@ namespace DatabaseBackupTool
         private int percentComplete1 = 0;
         private int percentComplete3 = 0;
         private bool backgroundFinished = false;
+        DateTime startTime;
+        DateTime startTime1;
+        DateTime startTime3;
         public Restore()
         {
             InitializeComponent();
@@ -56,6 +59,8 @@ namespace DatabaseBackupTool
                     startRestore.Enabled = false;
                     chooseDirectoryButton.Enabled = false;
                     backgroundFinished = false;
+                    startTime1 = DateTime.Now;
+                    startTime3 = DateTime.Now;
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
                 }
@@ -102,25 +107,28 @@ namespace DatabaseBackupTool
         {
             percentComplete1 = e.ProgressPercentage; 
             int work = (percentComplete1 + percentComplete3) / 2;
-            Console.WriteLine($"{work}% Finished BG1");
+            TimeSpan time = DateTime.Now - startTime3;
+            startTime1 = DateTime.Now;
+
+            Console.WriteLine($"{work}% BG1 restored a file in {time.Milliseconds}ms");
             progressBar1.Value = work;
             progressBarLabel.Text = $"{work}% Complete";
         }
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-
             if (backgroundFinished)
             {
+                TimeSpan time = DateTime.Now - startTime;
                 startRestore.Enabled = true;
                 chooseDirectoryButton.Enabled = true;
                 recursiveBox.Enabled = true;
                 restoreDirectoryTextBox.Enabled = true;
+                Console.WriteLine($"completed restore in {time.Seconds}seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
             }
             else
                 backgroundFinished = true;
-
         }
 
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
@@ -161,7 +169,10 @@ namespace DatabaseBackupTool
         {
             percentComplete3 = e.ProgressPercentage;
             int work = (percentComplete1 + percentComplete3) / 2;
-            Console.WriteLine($"{work}% Finished BG3");
+            TimeSpan time = DateTime.Now - startTime3;
+            startTime3 = DateTime.Now;
+
+            Console.WriteLine($"{work}% BG3 restored a file in {time.Milliseconds}ms");
             progressBar1.Value = work;            
             progressBarLabel.Text = $"{work}% Complete";
         }
@@ -169,10 +180,12 @@ namespace DatabaseBackupTool
         {
             if (backgroundFinished)
             {
+                TimeSpan time = DateTime.Now - startTime;
                 startRestore.Enabled = true;
                 chooseDirectoryButton.Enabled = true;
                 recursiveBox.Enabled = true;
                 restoreDirectoryTextBox.Enabled = true;
+                Console.WriteLine($"completed restore in {time.Seconds}seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
             }
