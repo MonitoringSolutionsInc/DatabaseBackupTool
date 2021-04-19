@@ -14,12 +14,16 @@ namespace DatabaseBackupTool
     {
         private bool keepGoing = true;
         public bool validLocation;
+        private int percentComplete1 = 0;
+        private int percentComplete3 = 0;
+        private bool backgroundFinished = false;
         public Restore()
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
             backgroundWorker1.WorkerReportsProgress = true;
             backgroundWorker2.WorkerReportsProgress = true;
+            backgroundWorker3.WorkerReportsProgress = true;
             backgroundWorker2.RunWorkerAsync();
         }
 
@@ -41,7 +45,7 @@ namespace DatabaseBackupTool
                 if (!Directory.Exists(restoreDirectoryTextBox.Text)) //if directory doesn't exist, set to some bogus place with no backup files and show error form
                 {
                     restoreDirectoryTextBox.BackColor = Color.Red;
-                    string myMessage = "The folowing directory could not be opened:\n" + restoreDirectoryTextBox.Text;
+                    string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
                     Exception myException = new Exception(myMessage);
                     ErrorForm ef = new ErrorForm(myException);
                     ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
@@ -51,11 +55,15 @@ namespace DatabaseBackupTool
                 {
                     startRestore.Enabled = false;
                     chooseDirectoryButton.Enabled = false;
+                    backgroundFinished = false;
                     backgroundWorker1.RunWorkerAsync();
+                    backgroundWorker3.RunWorkerAsync();
                 }
             }
 
         }
+
+
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -64,7 +72,7 @@ namespace DatabaseBackupTool
      
             string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
 
-            for (int i = 0; i < filesToRestore.Length - 1; i++)
+            for (int i = 0; i < filesToRestore.Length; i += 2)//for (int i = 0; i < filesToRestore.Length - 1; i += 2)
             {
                 string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
                 string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
@@ -86,26 +94,90 @@ namespace DatabaseBackupTool
                     ErrorForm ef = new ErrorForm(ex);
                     //ef.Show();
                 }
-                int percentComplete = (int)((float)i / (float)(filesToRestore.Length - 1) * 100);
-                Console.WriteLine($"{percentComplete}% Finished");
+                int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
                 worker.ReportProgress(percentComplete);
                 }
         }
-
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            progressBar1.Value = e.ProgressPercentage;
-            progressBarLabel.Text = $"{e.ProgressPercentage}% Complete";
+            percentComplete1 = e.ProgressPercentage; 
+            int work = (percentComplete1 + percentComplete3) / 2;
+            Console.WriteLine($"{work}% Finished BG1");
+            progressBar1.Value = work;
+            progressBarLabel.Text = $"{work}% Complete";
         }
-
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            startRestore.Enabled = true;
-            chooseDirectoryButton.Enabled = true;
-            recursiveBox.Enabled = true;
-            restoreDirectoryTextBox.Enabled = true;
-            progressBar1.Value = 100;
-            progressBarLabel.Text = $"100% Complete";
+
+            if (backgroundFinished)
+            {
+                startRestore.Enabled = true;
+                chooseDirectoryButton.Enabled = true;
+                recursiveBox.Enabled = true;
+                restoreDirectoryTextBox.Enabled = true;
+                progressBar1.Value = 100;
+                progressBarLabel.Text = $"100% Complete";
+            }
+            else
+                backgroundFinished = true;
+
+        }
+
+        private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+
+            string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+
+            for (int i = 1; i < filesToRestore.Length; i += 2) //for (int i = 1; i < filesToRestore.Length - 1; i += 2)
+            {
+                string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
+                string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
+                SQLConnector conn = null;
+                try
+                {
+                    conn = new SQLConnector("");
+                    conn.InitializeConnection();
+                    conn.Open();
+                    conn.ReadResults(conn.CreateCommand(restoreSql));
+                    conn.Close();
+                }
+                catch (Exception ex)
+                {
+                    if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                    {
+                        conn.Close();
+                    }
+                    ErrorForm ef = new ErrorForm(ex);
+                    //ef.Show();
+                }
+                int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                worker.ReportProgress(percentComplete);
+            }
+        }
+        private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            percentComplete3 = e.ProgressPercentage;
+            int work = (percentComplete1 + percentComplete3) / 2;
+            Console.WriteLine($"{work}% Finished BG3");
+            progressBar1.Value = work;            
+            progressBarLabel.Text = $"{work}% Complete";
+        }
+        private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (backgroundFinished)
+            {
+                startRestore.Enabled = true;
+                chooseDirectoryButton.Enabled = true;
+                recursiveBox.Enabled = true;
+                restoreDirectoryTextBox.Enabled = true;
+                progressBar1.Value = 100;
+                progressBarLabel.Text = $"100% Complete";
+            }
+            else
+                backgroundFinished = true;
         }
 
 
@@ -114,22 +186,17 @@ namespace DatabaseBackupTool
             BackgroundWorker worker = sender as BackgroundWorker;
             while (keepGoing)
             {
-                if (Directory.Exists(restoreDirectoryTextBox.Text))
-                    validLocation = true;
-                else
-                    validLocation = false;
-
-                worker.ReportProgress(Convert.ToInt32(validLocation)); //raises the progressChanged Event which calls the function associated with that for this worker
+                System.Threading.Thread.Sleep(100); //change update rate of text box in milliseconds (cannot be zero)
+                worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
             }
         }
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (validLocation)
+            if (Directory.Exists(restoreDirectoryTextBox.Text))
                 restoreDirectoryTextBox.BackColor = Color.White;
             else
                 restoreDirectoryTextBox.BackColor = Color.Red;
         }
-
         private void backgroundWorker2_killOnClose(FormClosedEventArgs e)
         {
             keepGoing = false;
