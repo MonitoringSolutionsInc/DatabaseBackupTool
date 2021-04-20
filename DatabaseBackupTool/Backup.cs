@@ -17,6 +17,9 @@ namespace DatabaseBackupTool
         static public string default_text = "Default Text...";
         private int percentComplete1 = 0;
         private int percentComplete3 = 0;
+        DateTime startTime;
+        DateTime startTime1;
+        DateTime startTime3;
         private bool backgroundFinished = false;
         public Backup()
         {
@@ -222,6 +225,9 @@ namespace DatabaseBackupTool
                     ef.Show();
                 }
                 backgroundFinished = false;
+                startTime = DateTime.Now;
+                startTime1 = DateTime.Now;
+                startTime3 = DateTime.Now;
                 backgroundWorker1.RunWorkerAsync();
                 backgroundWorker3.RunWorkerAsync();
             }
@@ -286,10 +292,13 @@ namespace DatabaseBackupTool
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            TimeSpan time;
+            time = DateTime.Now - startTime1;
+            startTime1 = DateTime.Now;
             percentComplete1 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
-            Console.WriteLine($"{done}% FinishedBG1");
+            Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
 
@@ -297,6 +306,7 @@ namespace DatabaseBackupTool
         {
             if (backgroundFinished)
             {
+                TimeSpan time = DateTime.Now - startTime;
                 startBackUp.Enabled = true;
                 RefreshDBs.Enabled = true;
                 MoveSelectRight.Enabled = true;
@@ -308,6 +318,7 @@ namespace DatabaseBackupTool
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
+                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
             }
@@ -350,10 +361,13 @@ namespace DatabaseBackupTool
 
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            TimeSpan time;
+            time = DateTime.Now - startTime3;
+            startTime3 = DateTime.Now;
             percentComplete3 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
-            Console.WriteLine($"{done}% FinishedBG3");
+            Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
 
@@ -361,6 +375,7 @@ namespace DatabaseBackupTool
         {
             if (backgroundFinished)
             {
+                TimeSpan time = DateTime.Now - startTime;
                 startBackUp.Enabled = true;
                 RefreshDBs.Enabled = true;
                 MoveSelectRight.Enabled = true;
@@ -372,6 +387,7 @@ namespace DatabaseBackupTool
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
+                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
             }
