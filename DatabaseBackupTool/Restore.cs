@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.IO;
 using System.Linq;
-
 using System.Windows.Forms;
 
 namespace DatabaseBackupTool
@@ -13,13 +12,20 @@ namespace DatabaseBackupTool
     public partial class Restore : Form
     {
         private bool keepGoing = true;
+        string[] filesToRestore;
         public bool validLocation;
         private int percentComplete1 = 0;
         private int percentComplete3 = 0;
-        private bool backgroundFinished = false;
+        private int percentComplete4 = 0;
+        private int percentComplete5 = 0;
+        private int backgroundFinished = 0;
+        private readonly object key = new object();
+        private int i = 0;
         DateTime startTime;
         DateTime startTime1;
         DateTime startTime3;
+        DateTime startTime4;
+        DateTime startTime5;
         public Restore()
         {
             InitializeComponent();
@@ -27,6 +33,8 @@ namespace DatabaseBackupTool
             backgroundWorker1.WorkerReportsProgress = true;
             backgroundWorker2.WorkerReportsProgress = true;
             backgroundWorker3.WorkerReportsProgress = true;
+            backgroundWorker4.WorkerReportsProgress = true;
+            backgroundWorker5.WorkerReportsProgress = true;
             backgroundWorker2.RunWorkerAsync();
         }
 
@@ -58,11 +66,18 @@ namespace DatabaseBackupTool
                 {
                     startRestore.Enabled = false;
                     chooseDirectoryButton.Enabled = false;
-                    backgroundFinished = false;
+                    backgroundFinished = 0;
+                    startTime  = DateTime.Now;
+                    SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+                    filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
                     startTime1 = DateTime.Now;
                     startTime3 = DateTime.Now;
+                    startTime4 = DateTime.Now;
+                    startTime5 = DateTime.Now;
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
+                    backgroundWorker4.RunWorkerAsync();
+                    backgroundWorker5.RunWorkerAsync();
                 }
             }
 
@@ -73,126 +88,107 @@ namespace DatabaseBackupTool
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
-            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-     
-            string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-
-            for (int i = 0; i < filesToRestore.Length; i += 2)//for (int i = 0; i < filesToRestore.Length - 1; i += 2)
+            while (i < filesToRestore.Length)
             {
-                string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
-                string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
-                SQLConnector conn = null;
-                try
+                lock (key)
+                    i++;
+                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
                 {
-                    conn = new SQLConnector("");
-                    conn.InitializeConnection();
-                    conn.Open();
-                    conn.ReadResults(conn.CreateCommand(restoreSql));
-                    conn.Close();
+                    restoreDatabase(i, filesToRestore);
+                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                    worker.ReportProgress(percentComplete);
                 }
-                catch (Exception ex)
-                {
-                    if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
-                    {
-                        conn.Close();
-                    }
-                    ErrorForm ef = new ErrorForm(ex);
-                    //ef.Show();
-                }
-                int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                worker.ReportProgress(percentComplete);
-                }
+            }
         }
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            percentComplete1 = e.ProgressPercentage; 
-            int work = (percentComplete1 + percentComplete3) / 2;
-            TimeSpan time = DateTime.Now - startTime3;
-            startTime1 = DateTime.Now;
-
-            Console.WriteLine($"{work}% BG1 restored a file in {time.Milliseconds}ms");
-            progressBar1.Value = work;
-            progressBarLabel.Text = $"{work}% Complete";
+            percentComplete1 = e.ProgressPercentage;
+            ProgressChanged("BG1");
         }
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (backgroundFinished)
-            {
-                TimeSpan time = DateTime.Now - startTime;
-                startRestore.Enabled = true;
-                chooseDirectoryButton.Enabled = true;
-                recursiveBox.Enabled = true;
-                restoreDirectoryTextBox.Enabled = true;
-                Console.WriteLine($"completed restore in {time.Seconds}seconds");
-                progressBar1.Value = 100;
-                progressBarLabel.Text = $"100% Complete";
-            }
-            else
-                backgroundFinished = true;
+            completed();
         }
 
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
-            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-
-            string[] filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-
-            for (int i = 1; i < filesToRestore.Length; i += 2) //for (int i = 1; i < filesToRestore.Length - 1; i += 2)
+            while (i < filesToRestore.Length)
             {
-                string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
-                string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
-                SQLConnector conn = null;
-                try
+                lock (key)
+                    i++;
+                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
                 {
-                    conn = new SQLConnector("");
-                    conn.InitializeConnection();
-                    conn.Open();
-                    conn.ReadResults(conn.CreateCommand(restoreSql));
-                    conn.Close();
+                    restoreDatabase(i, filesToRestore);
+                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                    worker.ReportProgress(percentComplete);
                 }
-                catch (Exception ex)
-                {
-                    if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
-                    {
-                        conn.Close();
-                    }
-                    ErrorForm ef = new ErrorForm(ex);
-                    //ef.Show();
-                }
-                int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                worker.ReportProgress(percentComplete);
             }
         }
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete3 = e.ProgressPercentage;
-            int work = (percentComplete1 + percentComplete3) / 2;
-            TimeSpan time = DateTime.Now - startTime3;
-            startTime3 = DateTime.Now;
-
-            Console.WriteLine($"{work}% BG3 restored a file in {time.Milliseconds}ms");
-            progressBar1.Value = work;            
-            progressBarLabel.Text = $"{work}% Complete";
+            ProgressChanged("BG3");
         }
         private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (backgroundFinished)
-            {
-                TimeSpan time = DateTime.Now - startTime;
-                startRestore.Enabled = true;
-                chooseDirectoryButton.Enabled = true;
-                recursiveBox.Enabled = true;
-                restoreDirectoryTextBox.Enabled = true;
-                Console.WriteLine($"completed restore in {time.Seconds}seconds");
-                progressBar1.Value = 100;
-                progressBarLabel.Text = $"100% Complete";
-            }
-            else
-                backgroundFinished = true;
+            completed();
         }
 
+
+        private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            while (i < filesToRestore.Length)
+            {
+                lock (key)
+                    i++;
+                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
+                {
+                    restoreDatabase(i, filesToRestore);
+                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                    worker.ReportProgress(percentComplete);
+                }
+            }
+        }
+        private void backgroundWorker4_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            percentComplete4 = e.ProgressPercentage;
+            ProgressChanged("BG4");
+        }
+        private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            completed();
+        }
+
+
+        private void backgroundWorker5_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            while (i < filesToRestore.Length)
+            {
+                lock (key)
+                    i++;
+                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
+                {
+                    restoreDatabase(i, filesToRestore);
+                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                    worker.ReportProgress(percentComplete);
+                }
+            }
+        }
+        private void backgroundWorker5_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            percentComplete5 = e.ProgressPercentage;
+            ProgressChanged("BG5");
+        }
+        private void backgroundWorker5_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            completed();
+        }
 
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -221,6 +217,79 @@ namespace DatabaseBackupTool
         {
             restoreDirectoryTextBox.Enabled = true;
             recursiveBox.Enabled = true;
+        }
+
+        private void restoreDatabase(int i, string[] filesToRestore)
+        {
+            string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
+            string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
+            SQLConnector conn = null;
+            try
+            {
+                conn = new SQLConnector("");
+                conn.InitializeConnection();
+                conn.Open();
+                conn.ReadResults(conn.CreateCommand(restoreSql));
+                conn.Close();
+            }
+            catch (Exception ex)
+            {
+                if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                {
+                    conn.Close();
+                }
+                ErrorForm ef = new ErrorForm(ex);
+                //ef.Show();
+            }
+        }
+        private void ProgressChanged(string who)
+        {
+            TimeSpan time;
+            int work = (percentComplete1 + percentComplete3 + percentComplete4 + percentComplete5) / 4;
+            switch (who)
+            {
+                case "BG1":
+                    time = DateTime.Now - startTime1;
+                    startTime1 = DateTime.Now;
+                    break;
+                case "BG3":
+                    time = DateTime.Now - startTime3;
+                    startTime3 = DateTime.Now;
+                    break;
+                case "BG4":
+                    time = DateTime.Now - startTime4;
+                    startTime4 = DateTime.Now;
+                    break;
+                case "BG5":
+                    time = DateTime.Now - startTime5;
+                    startTime5 = DateTime.Now;
+                    break;
+                default:
+                    Console.WriteLine("Idk what happened");
+                    time = DateTime.Now - startTime;
+                    break;
+            }                
+
+
+            Console.WriteLine($"{work}% {who} restored a file in {time.Seconds}.{time.Milliseconds} seconds");
+            progressBar1.Value = work;
+            progressBarLabel.Text = $"{work}% Complete";
+        }
+        private void completed()
+        {
+            if (backgroundFinished >= 3) //run only when all threads are done
+            {
+                TimeSpan time = DateTime.Now - startTime;
+                startRestore.Enabled = true;
+                chooseDirectoryButton.Enabled = true;
+                recursiveBox.Enabled = true;
+                restoreDirectoryTextBox.Enabled = true;
+                Console.WriteLine($"completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                progressBar1.Value = 100;
+                progressBarLabel.Text = $"100% Complete";
+            }
+            else
+                backgroundFinished++;
         }
     }
 }
