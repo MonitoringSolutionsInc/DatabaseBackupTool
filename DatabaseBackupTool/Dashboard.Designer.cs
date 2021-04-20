@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace DatabaseBackupTool
 {
     partial class Dashboard
@@ -32,6 +34,7 @@ namespace DatabaseBackupTool
             this.databaseBackupToolBtn = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.restoreBackupToolBtn = new System.Windows.Forms.Button();
+            this.update = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // databaseBackupToolBtn
@@ -63,11 +66,22 @@ namespace DatabaseBackupTool
             this.restoreBackupToolBtn.UseVisualStyleBackColor = true;
             this.restoreBackupToolBtn.Click += new System.EventHandler(this.restoreBackupToolBtn_Click);
             // 
+            // update
+            // 
+            this.update.Location = new System.Drawing.Point(12, 80);
+            this.update.Name = "update";
+            this.update.Size = new System.Drawing.Size(129, 23);
+            this.update.TabIndex = 3;
+            this.update.Text = "Update tool from GitHub";
+            this.update.UseVisualStyleBackColor = true;
+            this.update.Click += new System.EventHandler(this.updateButtonClick);
+            // 
             // Dashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(278, 112);
+            this.Controls.Add(this.update);
             this.Controls.Add(this.restoreBackupToolBtn);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.databaseBackupToolBtn);
@@ -79,10 +93,13 @@ namespace DatabaseBackupTool
 
         }
 
+       
+
         #endregion
 
         private System.Windows.Forms.Button databaseBackupToolBtn;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button restoreBackupToolBtn;
+        private System.Windows.Forms.Button update;
     }
 }
