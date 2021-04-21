@@ -20,7 +20,7 @@ namespace DatabaseBackupTool
         private int percentComplete5 = 0;
         private int backgroundFinished = 0;
         private readonly object key = new object();
-        private int i = 0;
+        private int i = -1; //must start at -1 or program misses zero'th index of backups
         DateTime startTime;
         DateTime startTime1;
         DateTime startTime3;
@@ -87,18 +87,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
-            while (i < filesToRestore.Length)
-            {
-                lock (key)
-                    i++;
-                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
-                {
-                    restoreDatabase(i, filesToRestore);
-                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                    worker.ReportProgress(percentComplete);
-                }
-            }
+            BG_DoWork(worker);
         }
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -113,18 +102,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
-            while (i < filesToRestore.Length)
-            {
-                lock (key)
-                    i++;
-                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
-                {
-                    restoreDatabase(i, filesToRestore);
-                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                    worker.ReportProgress(percentComplete);
-                }
-            }
+            BG_DoWork(worker);           
         }
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -140,18 +118,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
-            while (i < filesToRestore.Length)
-            {
-                lock (key)
-                    i++;
-                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
-                {
-                    restoreDatabase(i, filesToRestore);
-                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                    worker.ReportProgress(percentComplete);
-                }
-            }
+            BG_DoWork(worker);
         }
         private void backgroundWorker4_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -167,19 +134,9 @@ namespace DatabaseBackupTool
         private void backgroundWorker5_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
-            while (i < filesToRestore.Length)
-            {
-                lock (key)
-                    i++;
-                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
-                {
-                    restoreDatabase(i, filesToRestore);
-                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
-                    worker.ReportProgress(percentComplete);
-                }
-            }
+            BG_DoWork(worker);
         }
+        
         private void backgroundWorker5_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete5 = e.ProgressPercentage;
@@ -190,6 +147,8 @@ namespace DatabaseBackupTool
             completed();
         }
 
+
+        //Worker 2 is responsible for turning the path variable red if the path is incorrect in real time.
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -219,15 +178,28 @@ namespace DatabaseBackupTool
             recursiveBox.Enabled = true;
         }
 
-        private void restoreDatabase(int i, string[] filesToRestore)
+        private void BG_DoWork(BackgroundWorker worker)
+        {
+            SQLConnector conn = connectToSQL(); //create connection outside of loop for more reliable operation
+
+            while (i < filesToRestore.Length)
+            {
+                lock (key)
+                    i++;
+                if (i < filesToRestore.Length) //perform this check here instead of inside lock to save on lock time
+                {
+                    restoreDatabase(i, filesToRestore, conn);
+                    int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
+                    worker.ReportProgress(percentComplete);
+                }
+            }
+        }
+        private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn)
         {
             string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
             string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
-            SQLConnector conn = null;
             try
             {
-                conn = new SQLConnector("");
-                conn.InitializeConnection();
                 conn.Open();
                 conn.ReadResults(conn.CreateCommand(restoreSql));
                 conn.Close();
@@ -239,7 +211,7 @@ namespace DatabaseBackupTool
                     conn.Close();
                 }
                 ErrorForm ef = new ErrorForm(ex);
-                //ef.Show();
+                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
             }
         }
         private void ProgressChanged(string who)
@@ -290,6 +262,25 @@ namespace DatabaseBackupTool
             }
             else
                 backgroundFinished++;
+        }
+        private SQLConnector connectToSQL()
+        {             
+            SQLConnector conn = null;
+            try
+            {
+                conn = new SQLConnector("");
+                conn.InitializeConnection();
+            }
+            catch (Exception ex)
+            {
+                if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                {
+                    conn.Close();
+                }
+                ErrorForm ef = new ErrorForm(ex);
+                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
+            }
+            return conn;
         }
     }
 }
