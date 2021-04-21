@@ -26,13 +26,14 @@ namespace DatabaseBackupTool
 
         private void updateButtonClick(object sender, EventArgs e)
         {
-            string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);//AppDomain.CurrentDomain.BaseDirectory; //System.Reflection.Assembly.GetEntryAssembly().Location;          
+            //gets the location the program was launched from and stores it in string. removes the file:\ from the front of it
+            string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
             str = str.Remove(0, 6);
 
             //debug
             str = "C:\\Users\\Jerrick\\Downloads\\";
 
-
+            //downloads and overwrites files in location
             try
             {
                 WebClient webClient = new WebClient();
@@ -42,7 +43,7 @@ namespace DatabaseBackupTool
             }
             catch (Exception f)
             {
-                Exception myException = new Exception("Problem with path: " + str);
+                Exception myException = new Exception("Problem with path: " + str, f);
                 ErrorForm popup = new ErrorForm(myException);
                 popup.Show();
             }
