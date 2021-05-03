@@ -21,6 +21,7 @@ namespace DatabaseBackupTool
         private int backgroundFinished = 0;
         private readonly object key = new object();
         private int i = -1; //must start at -1 or program misses zero'th index of backups
+        private Boolean checkDone = false;
         DateTime startTime;
         DateTime startTime1;
         DateTime startTime3;
@@ -32,6 +33,7 @@ namespace DatabaseBackupTool
             FormBorderStyle = FormBorderStyle.FixedSingle;
             backgroundWorker1.WorkerReportsProgress = true;
             backgroundWorker2.WorkerReportsProgress = true;
+            backgroundWorker2.WorkerSupportsCancellation = true;
             backgroundWorker3.WorkerReportsProgress = true;
             backgroundWorker4.WorkerReportsProgress = true;
             backgroundWorker5.WorkerReportsProgress = true;
@@ -192,8 +194,14 @@ namespace DatabaseBackupTool
                     int percentComplete = (int)((float)i / (float)(filesToRestore.Length) * 100);
                     worker.ReportProgress(percentComplete);
                 }
+                else if (i == filesToRestore.Length) //when finished with restoring all files, check to make sure they succeeded
+                {
+                        stuckRestoringCheck(filesToRestore, conn);
+                }
             }
         }
+
+
         private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn)
         {
             string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
@@ -214,6 +222,68 @@ namespace DatabaseBackupTool
                 //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
             }
         }
+
+
+        //checks over all databases that were restored and checks there state. If any are stuck in restoring state, then restore them again (single threaded at this point)
+        private void stuckRestoringCheck(string[] filesToRestore, SQLConnector conn)
+        {
+            Boolean keepgoing = true;
+            //make sure all other background workers are done with their restoring before proceeding
+            while (keepgoing)
+            {
+                int workersWorking = 0;
+                if (backgroundWorker1.IsBusy)
+                    workersWorking++;                
+                if (backgroundWorker3.IsBusy)
+                    workersWorking++;
+                if (backgroundWorker4.IsBusy)
+                    workersWorking++;
+                if (backgroundWorker5.IsBusy)
+                    workersWorking++;
+
+                if (workersWorking == 1)
+                    keepgoing = false;
+            }
+
+            //Console.Clear(); //this line seems to cause problems for some reason. didn't investigate, just disabled since non-essential
+            for (int i = 0; i < filesToRestore.Length; i++)
+            {
+                string dbName = filesToRestore[i].Split('\\').Last().Split('.').First();
+                string sql_check_state = $"SELECT DATABASEPROPERTYEX('{dbName}', 'Status')";
+                string result;
+
+                if (conn.GetConnectionState() == ConnectionState.Open)
+                {
+                    conn.Close();
+                }
+
+                try
+                {
+                    conn.Open();
+                    var reader = conn.ReadResults(conn.CreateCommand(sql_check_state));
+                    reader.Read();
+                    result = reader[0].ToString(); //read the result's first row grab its first column
+                    Console.WriteLine(dbName + ": " + result);
+                    conn.Close();
+                }
+                catch (Exception ex)
+                {
+                    if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
+                    {
+                        conn.Close();
+                    }
+                    result = "failed";
+                }
+                if (!result.Equals("ONLINE")) //if this database's state is not ONLINE then restore it again
+                {
+                    Console.WriteLine($"{dbName} currently in state: {result}");
+                    Console.WriteLine("restoring... starting check over again");
+                    restoreDatabase(i, filesToRestore, conn);
+                    i = -1; //reset, start check over again to check this one again
+                }
+            }
+        }
+
         private void ProgressChanged(string who)
         {
             TimeSpan time;
