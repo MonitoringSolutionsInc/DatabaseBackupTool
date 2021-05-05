@@ -6,6 +6,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace DatabaseBackupTool
 {
@@ -172,9 +173,7 @@ namespace DatabaseBackupTool
             keepGoing = false;
             backgroundWorker2.CancelAsync();
         }
-
-
-            private void errorBoxClosed(object sender, FormClosedEventArgs e)
+        private void errorBoxClosed(object sender, FormClosedEventArgs e)
         {
             restoreDirectoryTextBox.Enabled = true;
             recursiveBox.Enabled = true;
@@ -196,7 +195,7 @@ namespace DatabaseBackupTool
                 }
                 else if (i == filesToRestore.Length) //when finished with restoring all files, check to make sure they succeeded
                 {
-                        stuckRestoringCheck(filesToRestore, conn);
+                    stuckRestoringCheck(filesToRestore, conn);
                 }
             }
         }
@@ -206,6 +205,7 @@ namespace DatabaseBackupTool
         {
             string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
             string restoreSql = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{filesToRestore[i]}' WITH REPLACE";
+            Console.WriteLine($"Restoring {databaseName} using query: {restoreSql}");
             try
             {
                 conn.Open();
@@ -227,6 +227,16 @@ namespace DatabaseBackupTool
         //checks over all databases that were restored and checks there state. If any are stuck in restoring state, then restore them again (single threaded at this point)
         private void stuckRestoringCheck(string[] filesToRestore, SQLConnector conn)
         {
+            conn.Open();
+
+            var dbResults = conn.ReadResults(conn.CreateCommand("SELECT NAME FROM SYS.DATABASES WHERE NAME NOT IN ('tempdb', 'master', 'model', 'msdb')"));
+            List<string> databases = new List<string>();
+            while(dbResults.Read())
+            {
+                databases.Add(dbResults[0].ToString());
+            }
+
+            conn.Close();
             Boolean keepgoing = true;
             //make sure all other background workers are done with their restoring before proceeding
             while (keepgoing)
@@ -246,9 +256,9 @@ namespace DatabaseBackupTool
             }
 
             //Console.Clear(); //this line seems to cause problems for some reason. didn't investigate, just disabled since non-essential
-            for (int i = 0; i < filesToRestore.Length; i++)
+            for (int i = 0; i < databases.Count; i++)
             {
-                string dbName = filesToRestore[i].Split('\\').Last().Split('.').First();
+                string dbName = databases[i];
                 string sql_check_state = $"SELECT DATABASEPROPERTYEX('{dbName}', 'Status')";
                 string result;
 
@@ -268,6 +278,7 @@ namespace DatabaseBackupTool
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                     if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
                     {
                         conn.Close();
