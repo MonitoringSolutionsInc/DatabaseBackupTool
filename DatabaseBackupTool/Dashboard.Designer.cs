@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace DatabaseBackupTool
 {
     partial class Dashboard
@@ -67,7 +69,7 @@ namespace DatabaseBackupTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(278, 112);
+            this.ClientSize = new System.Drawing.Size(278, 99);
             this.Controls.Add(this.restoreBackupToolBtn);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.databaseBackupToolBtn);
@@ -78,6 +80,8 @@ namespace DatabaseBackupTool
             this.PerformLayout();
 
         }
+
+       
 
         #endregion
 
