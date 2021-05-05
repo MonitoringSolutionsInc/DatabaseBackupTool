@@ -23,30 +23,5 @@ namespace DatabaseBackupTool
             Restore restore = new Restore();
             restore.ShowDialog();
         }
-
-        private void updateButtonClick(object sender, EventArgs e)
-        {
-            //gets the location the program was launched from and stores it in string. removes the file:\ from the front of it
-            string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-            str = str.Remove(0, 6);
-
-            //debug
-            str = "C:\\Users\\Jerrick\\Downloads\\";
-
-            //downloads and overwrites files in location
-            try
-            {
-                WebClient webClient = new WebClient();
-                WebClient webClient2 = new WebClient();
-                webClient.DownloadFileAsync(new Uri("https://github.com/JazzGlobal/DatabaseBackupTool/raw/master/Build/DatabaseBackupTool.exe"), str + "DatabaseBackupTool.exe");                
-                webClient2.DownloadFileAsync(new Uri("https://github.com/JazzGlobal/DatabaseBackupTool/raw/master/Build/SqlConnector.dll"), str + "SqlConnector.dll");
-            }
-            catch (Exception f)
-            {
-                Exception myException = new Exception("Problem with path: " + str, f);
-                ErrorForm popup = new ErrorForm(myException);
-                popup.Show();
-            }
-        }//end updateButtonClickk
     }
 }
