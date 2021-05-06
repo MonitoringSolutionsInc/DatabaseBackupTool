@@ -13,18 +13,28 @@ namespace DatabaseBackupTool
     {
         ErrorForm ef;
         SQLConnector connector;
+        SQLConnector connector2;
         static public string default_text = "Default Text...";
+        private int percentComplete1 = 0;
+        private int percentComplete3 = 0;
+        DateTime startTime;
+        DateTime startTime1;
+        DateTime startTime3;
+        private bool backgroundFinished = false;
         public Backup()
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
             backgroundWorker1.WorkerReportsProgress = true;
+            backgroundWorker3.WorkerReportsProgress = true;
         }
 
         public void InitializeConnection()
         {
             connector = new SQLConnector("");
             connector.InitializeConnection();
+            connector2 = new SQLConnector("");
+            connector2.InitializeConnection();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -214,7 +224,12 @@ namespace DatabaseBackupTool
                     ef = new ErrorForm(myException);
                     ef.Show();
                 }
+                backgroundFinished = false;
+                startTime = DateTime.Now;
+                startTime1 = DateTime.Now;
+                startTime3 = DateTime.Now;
                 backgroundWorker1.RunWorkerAsync();
+                backgroundWorker3.RunWorkerAsync();
             }
         }
 
@@ -242,7 +257,7 @@ namespace DatabaseBackupTool
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
-            for (int i = 0; i < backupList.Items.Count; i++)
+            for (int i = 0; i < backupList.Items.Count; i += 2)
             {
                 if (connector.Open())
                 {
@@ -266,36 +281,118 @@ namespace DatabaseBackupTool
                         break;
                     }
                 }
-                if (backupProgressBar.Value == backupProgressBar.Maximum)
-                {
-                    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
-                }
-                int percentComplete =
-                                    (int)(i / (float)(backupList.Items.Count) * 100);
-                Console.WriteLine($"{percentComplete}% Finished");
+                //if (backupProgressBar.Value == backupProgressBar.Maximum)
+                //{
+                //    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
+                //}
+                int percentComplete = (int)(i / (float)(backupList.Items.Count) * 100);
                 worker.ReportProgress(percentComplete);
             }
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            backupProgressBar.Value = e.ProgressPercentage;
-            progressBarLabel.Text = $"{e.ProgressPercentage}% Complete";
+            TimeSpan time;
+            time = DateTime.Now - startTime1;
+            startTime1 = DateTime.Now;
+            percentComplete1 = e.ProgressPercentage;
+            int done = (percentComplete1 + percentComplete3) / 2;
+            backupProgressBar.Value = done;
+            Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
+            progressBarLabel.Text = $"{done}% Complete";
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            startBackUp.Enabled = true;
-            RefreshDBs.Enabled = true;
-            MoveSelectRight.Enabled = true;
-            MoveSelectLeft.Enabled = true;
-            MoveAllLeft.Enabled = true;
-            MoveAllRight.Enabled = true;
-            chooseDirectoryButton.Enabled = true;
-            backupDirectoryTextBox.Enabled = true;
-            filterTextBox.Enabled = true;
-            backupProgressBar.Value = 100;
-            progressBarLabel.Text = $"100% Complete";
+            if (backgroundFinished)
+            {
+                TimeSpan time = DateTime.Now - startTime;
+                startBackUp.Enabled = true;
+                RefreshDBs.Enabled = true;
+                MoveSelectRight.Enabled = true;
+                MoveSelectLeft.Enabled = true;
+                MoveAllLeft.Enabled = true;
+                MoveAllRight.Enabled = true;
+                chooseDirectoryButton.Enabled = true;
+                backupDirectoryTextBox.Enabled = true;
+                filterTextBox.Enabled = true;
+                backupProgressBar.Value = 100;
+                progressBarLabel.Text = $"100% Complete";
+                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
+                System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
+            }
+            else
+                backgroundFinished = true;
+        }
+
+        private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            for (int i = 1; i < backupList.Items.Count; i += 2)
+            {
+                if (connector2.Open())
+                {
+                    try
+                    {
+                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
+                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
+                        var command = connector2.CreateCommand(sql);
+                        command.CommandTimeout = 0;
+                        var reader = connector2.ReadResults(command);
+                        if (connector2.GetConnectionState() == ConnectionState.Open)
+                        {
+                            connector2.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        connector2.Close();
+                        ef = new ErrorForm(ex);
+                        ef.Show();
+                        break;
+                    }
+                }
+                int percentComplete = (int)(i / (float)(backupList.Items.Count) * 100);
+                worker.ReportProgress(percentComplete);
+            }
+        }
+
+        private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            TimeSpan time;
+            time = DateTime.Now - startTime3;
+            startTime3 = DateTime.Now;
+            percentComplete3 = e.ProgressPercentage;
+            int done = (percentComplete1 + percentComplete3) / 2;
+            backupProgressBar.Value = done;
+            Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
+            progressBarLabel.Text = $"{done}% Complete";
+        }
+
+        private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (backgroundFinished)
+            {
+                TimeSpan time = DateTime.Now - startTime;
+                startBackUp.Enabled = true;
+                RefreshDBs.Enabled = true;
+                MoveSelectRight.Enabled = true;
+                MoveSelectLeft.Enabled = true;
+                MoveAllLeft.Enabled = true;
+                MoveAllRight.Enabled = true;
+                chooseDirectoryButton.Enabled = true;
+                backupDirectoryTextBox.Enabled = true;
+                filterTextBox.Enabled = true;
+                backupProgressBar.Value = 100;
+                progressBarLabel.Text = $"100% Complete";
+                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
+                System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
+            }
+            else
+                backgroundFinished = true;
         }
     }
 }
