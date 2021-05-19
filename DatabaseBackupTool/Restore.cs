@@ -349,7 +349,7 @@ namespace DatabaseBackupTool
             SQLConnector conn = null;
             try
             {
-                conn = new SQLConnector("");
+                conn = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
                 conn.InitializeConnection();
             }
             catch (Exception ex)
