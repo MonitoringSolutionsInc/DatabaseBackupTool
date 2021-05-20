@@ -31,9 +31,9 @@ namespace DatabaseBackupTool
 
         public void InitializeConnection()
         {
-            connector = new SQLConnector("");
+            connector = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
             connector.InitializeConnection();
-            connector2 = new SQLConnector("");
+            connector2 = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
             connector2.InitializeConnection();
         }
 
