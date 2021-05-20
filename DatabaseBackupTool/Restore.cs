@@ -169,11 +169,6 @@ namespace DatabaseBackupTool
             else
                 restoreDirectoryTextBox.BackColor = Color.Red;
         }
-        public void backgroundWorker2_killOnClose(FormClosedEventArgs e)
-        {
-            keepGoing = false;
-            backgroundWorker2.CancelAsync();
-        }
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
         {
             restoreDirectoryTextBox.Enabled = true;
@@ -363,6 +358,12 @@ namespace DatabaseBackupTool
                 //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
             }
             return conn;
+        }
+
+        private void Restore_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            keepGoing = false;
+            backgroundWorker2.CancelAsync();
         }
     }
 }

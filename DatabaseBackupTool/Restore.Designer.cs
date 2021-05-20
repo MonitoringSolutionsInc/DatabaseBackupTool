@@ -105,9 +105,9 @@ namespace DatabaseBackupTool
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
             this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
-            //
+            // 
             // backgroundWorker2
-            //
+            // 
             this.backgroundWorker2.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker2_DoWork);
             this.backgroundWorker2.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker2_ProgressChanged);
             // 
@@ -161,6 +161,7 @@ namespace DatabaseBackupTool
             this.MaximizeBox = false;
             this.Name = "Restore";
             this.Text = "Database Restore Tool";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Restore_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
