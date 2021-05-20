@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace DatabaseBackupTool
@@ -25,17 +27,32 @@ namespace DatabaseBackupTool
             try
             {
                 doc = XElement.Load(xmlPath);
-            } catch (Exception e)
+                var element = doc.Elements().ToList()[0];
+                sqlInfo.Data_Source = element.Attribute("data_source").Value;
+                sqlInfo.Initial_Catalog = element.Attribute("initial_catalog").Value;
+                sqlInfo.User_Id = element.Attribute("user_id").Value;
+                sqlInfo.Password = element.Attribute("password").Value;
+            }
+            catch (System.IO.FileNotFoundException fnfEx)
+            {
+                Console.WriteLine($"{fnfEx.Message}\nCreating SqlConnectorData.xml");
+                string xmlData = "<? xml version = \"1.0\" encoding = \"utf-8\" ?>< connectionData><connection data_source = \"(local)\\SQLEXPRESS\" initial_catalog =\"\" user_id =\"sa\" password =\"sa123\"></connection></connectionData>";
+                Console.WriteLine(xmlData);
+                using (FileStream fs = File.OpenWrite("SqlConnectorData.xml"))
+                {
+                    var info = new UTF8Encoding(true).GetBytes(xmlData);
+                    fs.Write(info, 0, info.Length);
+                }
+                Dashboard.LoadSqlConnectionXml();
+            }
+            catch (Exception e)
             {
                 Console.WriteLine("An error occured while attempting to load Connection String from XML");
+                sqlInfo.Data_Source = @"(local)\SQLEXPRESS";
+                sqlInfo.Initial_Catalog = "";
+                sqlInfo.User_Id = "sa";
+                sqlInfo.Password = "sa123";
             }
-            var element = doc.Elements().ToList()[0];
-
-            sqlInfo.Data_Source = element.Attribute("data_source").Value;
-            sqlInfo.Initial_Catalog = element.Attribute("initial_catalog").Value;
-            sqlInfo.User_Id = element.Attribute("user_id").Value;
-            sqlInfo.Password = element.Attribute("password").Value;
-
             return sqlInfo;
         }
     }
