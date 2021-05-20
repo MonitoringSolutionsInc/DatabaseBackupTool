@@ -77,6 +77,7 @@ namespace DatabaseBackupTool
                     startTime3 = DateTime.Now;
                     startTime4 = DateTime.Now;
                     startTime5 = DateTime.Now;
+                    i = 0;
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
                     backgroundWorker4.RunWorkerAsync();
@@ -167,11 +168,6 @@ namespace DatabaseBackupTool
                 restoreDirectoryTextBox.BackColor = Color.White;
             else
                 restoreDirectoryTextBox.BackColor = Color.Red;
-        }
-        private void backgroundWorker2_killOnClose(FormClosedEventArgs e)
-        {
-            keepGoing = false;
-            backgroundWorker2.CancelAsync();
         }
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
         {
@@ -362,6 +358,12 @@ namespace DatabaseBackupTool
                 //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
             }
             return conn;
+        }
+
+        private void Restore_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            keepGoing = false;
+            backgroundWorker2.CancelAsync();
         }
     }
 }
