@@ -12,17 +12,23 @@ namespace DatabaseBackupTool
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
+            loadSqlConnectorXml();
         }
 
+        private void loadSqlConnectorXml()
+        {
+            SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
+        }
         private void databaseBackupToolBtn_Click(object sender, EventArgs e)
         {
+            loadSqlConnectorXml();
             Backup backup = new Backup();
             backup.ShowDialog();
         }
 
         private void restoreBackupToolBtn_Click(object sender, EventArgs e)
         {
+            loadSqlConnectorXml();
             Restore restore = new Restore();
             restore.ShowDialog();
         }
