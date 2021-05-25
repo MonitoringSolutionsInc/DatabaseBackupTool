@@ -1,13 +1,1 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<connectionData>
-  <connection data_source="(local)\SQLEXPRESS" initial_catalog="" user_id="sa" password="sa123">
-   <!-- 
-    The above is the likely configuration for most client set ups.
-   
-    data_source: Refers to the sql server. (local)\SQLEXPRESS translates to the PC name + \SQLEXPRESS. This typically will not change on client machines.
-    initial_catalog: Refers to the database name. You can leave this blank for a general SQL Connection. This is the preferred method so SELECT queries can be executed against a multitude of databases using one SQL Connector.
-    user_id: Is the name of the SQL user being used to connect to the SQL instance.
-    password: Is the password for the user being used to connect to the SQL instance.
-   -->
-  </connection>
-</connectionData>
+<?xml version = "1.0" encoding = "utf-8" ?><connectionData><connection data_source = "(local)\SQLEXPRESS" initial_catalog ="" user_id ="sa" password ="sa123"></connection></connectionData>

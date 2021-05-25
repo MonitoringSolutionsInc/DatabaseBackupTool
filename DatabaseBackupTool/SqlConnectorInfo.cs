@@ -38,7 +38,7 @@ namespace DatabaseBackupTool
                 Console.WriteLine($"{fnfEx.Message}\nCreating SqlConnectorData.xml");
                 string xmlData = "<?xml version = \"1.0\" encoding = \"utf-8\" ?><connectionData><connection data_source = \"(local)\\SQLEXPRESS\" initial_catalog =\"\" user_id =\"sa\" password =\"sa123\"></connection></connectionData>";
                 Console.WriteLine(xmlData);
-                using (FileStream fs = File.OpenWrite("SqlConnectorData.xml"))
+                using (FileStream fs = File.OpenWrite(xmlPath))
                 {
                     var info = new UTF8Encoding(true).GetBytes(xmlData);
                     fs.Write(info, 0, info.Length);
