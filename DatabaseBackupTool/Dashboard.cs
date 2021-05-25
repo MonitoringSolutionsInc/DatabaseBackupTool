@@ -10,11 +10,23 @@ namespace DatabaseBackupTool
         private static string xmlPath = "SqlConnectorData.xml";
         public Dashboard()
         {
+            GetExecutionDirectory();
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
             LoadSqlConnectionXml();
         }
 
+        public void GetExecutionDirectory()
+        {
+            //gets the location the exe and stores it in string.
+            string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
+            
+            //remove "file:\" from beginning
+            xmlPath = str.Substring(6);
+            
+            //add XML file
+            xmlPath += "\\SqlConnectorData.xml";
+        }
         public static void LoadSqlConnectionXml()
         {
             SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
