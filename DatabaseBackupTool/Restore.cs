@@ -77,7 +77,7 @@ namespace DatabaseBackupTool
                     startTime3 = DateTime.Now;
                     startTime4 = DateTime.Now;
                     startTime5 = DateTime.Now;
-                    i = 0;
+                    i = -1;
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
                     backgroundWorker4.RunWorkerAsync();
