@@ -21,6 +21,9 @@ namespace DatabaseBackupTool
         DateTime startTime1;
         DateTime startTime3;
         private bool backgroundFinished = false;
+
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public Backup()
         {
             InitializeComponent();
@@ -31,10 +34,19 @@ namespace DatabaseBackupTool
 
         public void InitializeConnection()
         {
-            connector = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
-            connector.InitializeConnection();
-            connector2 = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
-            connector2.InitializeConnection();
+            try
+            {
+                connector = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
+                connector.InitializeConnection();
+                connector2 = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
+                connector2.InitializeConnection();
+                Logger.Info("Successfully Loaded Both SQL Connectors.");
+            } catch (Exception e) {
+                Logger.Error(e, "One or both of the SQL Connectors failed to load.");
+                throw;
+            }
+
+
         }
 
         private void Form1_Load(object sender, EventArgs e)

@@ -8,6 +8,7 @@ namespace DatabaseBackupTool
     {
         public static SqlConnectorInfo.SqlConnectionInfoData SqlInfoData; // Globally accessible instance of the XML loaded SQL Connection Info.
         private static string xmlPath = "SqlConnectorData.xml";
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         public Dashboard()
         {
             GetExecutionDirectory();
@@ -29,7 +30,15 @@ namespace DatabaseBackupTool
         }
         public static void LoadSqlConnectionXml()
         {
-            SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
+            try
+            {
+                SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
+                Logger.Info($"Successfully loaded SqlConnection information from XML Path: {xmlPath}");
+            } catch (Exception e)
+            {
+                Logger.Error(e, $"An error has occurred while attempting to load SqlConnection information from XML Path: {xmlPath}");
+                throw;
+            }
         }
         private void databaseBackupToolBtn_Click(object sender, EventArgs e)
         {

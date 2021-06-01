@@ -28,6 +28,9 @@ namespace DatabaseBackupTool
         DateTime startTime3;
         DateTime startTime4;
         DateTime startTime5;
+
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public Restore()
         {
             InitializeComponent();
@@ -61,6 +64,7 @@ namespace DatabaseBackupTool
                     restoreDirectoryTextBox.BackColor = Color.Red;
                     string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
                     Exception myException = new Exception(myMessage);
+                    Logger.Error(myException);
                     ErrorForm ef = new ErrorForm(myException);
                     ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
                     ef.ShowDialog();
@@ -78,6 +82,7 @@ namespace DatabaseBackupTool
                     startTime4 = DateTime.Now;
                     startTime5 = DateTime.Now;
                     i = -1;
+                    Logger.Info("Starting Background Workers ...");
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
                     backgroundWorker4.RunWorkerAsync();
@@ -214,8 +219,7 @@ namespace DatabaseBackupTool
                 {
                     conn.Close();
                 }
-                ErrorForm ef = new ErrorForm(ex);
-                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
+                Logger.Error(ex, $"An error occurred while attempting to restore {databaseName}");
             }
         }
 
@@ -285,6 +289,7 @@ namespace DatabaseBackupTool
                 {
                     Console.WriteLine($"{dbName} currently in state: {result}");
                     Console.WriteLine("restoring... starting check over again");
+                    Logger.Info($"{dbName} currently in state: {result} - restoring... starting check over again");
                     restoreDatabase(i, filesToRestore, conn);
                     i = -1; //reset, start check over again to check this one again
                 }
@@ -334,6 +339,7 @@ namespace DatabaseBackupTool
                 recursiveBox.Enabled = true;
                 restoreDirectoryTextBox.Enabled = true;
                 Console.WriteLine($"completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
             }
@@ -354,8 +360,11 @@ namespace DatabaseBackupTool
                 {
                     conn.Close();
                 }
-                ErrorForm ef = new ErrorForm(ex);
-                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
+                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
+                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
+                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
+                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
+                    $"Password: {Dashboard.SqlInfoData.Password}");
             }
             return conn;
         }
