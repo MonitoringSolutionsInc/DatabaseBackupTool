@@ -219,8 +219,7 @@ namespace DatabaseBackupTool
                 {
                     conn.Close();
                 }
-                ErrorForm ef = new ErrorForm(ex);
-                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
+                Logger.Error(ex, $"An error occurred while attempting to restore {databaseName}");
             }
         }
 
@@ -361,8 +360,11 @@ namespace DatabaseBackupTool
                 {
                     conn.Close();
                 }
-                ErrorForm ef = new ErrorForm(ex);
-                //ef.Show(); //Can't show error forms from the background workers, only from progress changed or complete
+                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
+                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
+                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
+                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
+                    $"Password: {Dashboard.SqlInfoData.Password}");
             }
             return conn;
         }
