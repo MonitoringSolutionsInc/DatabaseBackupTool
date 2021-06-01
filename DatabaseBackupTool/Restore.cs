@@ -28,6 +28,9 @@ namespace DatabaseBackupTool
         DateTime startTime3;
         DateTime startTime4;
         DateTime startTime5;
+
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public Restore()
         {
             InitializeComponent();
@@ -61,6 +64,7 @@ namespace DatabaseBackupTool
                     restoreDirectoryTextBox.BackColor = Color.Red;
                     string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
                     Exception myException = new Exception(myMessage);
+                    Logger.Error(myException);
                     ErrorForm ef = new ErrorForm(myException);
                     ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
                     ef.ShowDialog();
@@ -78,6 +82,7 @@ namespace DatabaseBackupTool
                     startTime4 = DateTime.Now;
                     startTime5 = DateTime.Now;
                     i = -1;
+                    Logger.Info("Starting Background Workers ...");
                     backgroundWorker1.RunWorkerAsync();
                     backgroundWorker3.RunWorkerAsync();
                     backgroundWorker4.RunWorkerAsync();
@@ -285,6 +290,7 @@ namespace DatabaseBackupTool
                 {
                     Console.WriteLine($"{dbName} currently in state: {result}");
                     Console.WriteLine("restoring... starting check over again");
+                    Logger.Info($"{dbName} currently in state: {result} - restoring... starting check over again");
                     restoreDatabase(i, filesToRestore, conn);
                     i = -1; //reset, start check over again to check this one again
                 }
@@ -334,6 +340,7 @@ namespace DatabaseBackupTool
                 recursiveBox.Enabled = true;
                 restoreDirectoryTextBox.Enabled = true;
                 Console.WriteLine($"completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
             }
