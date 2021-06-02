@@ -268,7 +268,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
+            Logger.Info($"Backup Starting: {backupList.Items.Count} Databases Slated for Backup.");
             for (int i = 0; i < backupList.Items.Count; i += 2)
             {
                 if (connector.Open())
@@ -284,12 +284,15 @@ namespace DatabaseBackupTool
                         {
                             connector.Close();
                         }
+                        Logger.Info($"Successfully Backed Up Database: {backupList.Items[i]}");
                     }
                     catch (Exception ex)
                     {
                         connector.Close();
-                        ef = new ErrorForm(ex);
-                        ef.Show();
+                        Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
+                        // This is extremely annoying and unreliable when errors occur on multiple databases.
+                        // ef = new ErrorForm(ex);
+                        // ef.Show();
                         break;
                     }
                 }
@@ -330,7 +333,8 @@ namespace DatabaseBackupTool
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
-                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
+                Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
             }
@@ -357,12 +361,15 @@ namespace DatabaseBackupTool
                         {
                             connector2.Close();
                         }
+                        Logger.Info($"Successfully Backed Up Database: {backupList.Items[i]}");
                     }
                     catch (Exception ex)
                     {
                         connector2.Close();
-                        ef = new ErrorForm(ex);
-                        ef.Show();
+                        Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
+                        // This is extremely annoying and unreliable when errors occur on multiple databases.
+                        //ef = new ErrorForm(ex);
+                        //ef.Show();
                         break;
                     }
                 }
@@ -399,7 +406,8 @@ namespace DatabaseBackupTool
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
-                Console.WriteLine($"completed bacukup in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
+                Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
+                Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
             }
