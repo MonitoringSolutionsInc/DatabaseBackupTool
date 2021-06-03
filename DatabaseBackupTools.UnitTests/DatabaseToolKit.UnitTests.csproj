@@ -49,8 +49,7 @@
       <HintPath>..\packages\MSTest.TestFramework.2.2.3\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="SqlConnector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Build\SqlConnector.dll</HintPath>
+      <HintPath>..\packages\MonSol.SqlConnector.1.0.1\lib\SqlConnector.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
