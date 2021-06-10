@@ -18,6 +18,10 @@ jobs:
       with:
         dotnet-version: 5.0.x
     - uses: nuget/setup-nuget@v1.0.5
+    - name: Add Monitoring Solutions SECRET
+      run: |
+        nuget source Add -Name "MonSol" -Source "https://nuget.pkg.github.com/MonitoringSolutionsInc/index.json" -username ${{ secrets.ORGANIZATION_REPO_ACCESS_USERNAME }} -password ${{ secrets.ORGANIZATION_REPO_ACCESS }}
+        nuget setApiKey ${{ secrets.ORGANIZATION_REPO_ACCESS }} -Source "https://nuget.pkg.github.com/MonitoringSolutionsInc/index.json"
     - name: Restore dependencies
       run: nuget restore
     - name: Build
