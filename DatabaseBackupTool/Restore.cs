@@ -199,6 +199,9 @@ namespace DatabaseBackupTool
                     stuckRestoringCheck(filesToRestore, conn);
                 }
             }
+            // Clean up SQLConnector.
+            conn.Dispose();
+            conn = null;
         }
 
 

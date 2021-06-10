@@ -17,6 +17,18 @@
             {
                 components.Dispose();
             }
+
+            if (connector != null)
+            {
+                connector.Dispose();
+                connector = null;
+            }
+            if (connector2 != null)
+            {
+                connector2.Dispose();
+                connector2 = null;
+            }
+
             base.Dispose(disposing);
         }
 
