@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 5.0.x
     - uses: nuget/setup-nuget@v1.0.5
     - name: Restore dependencies
-      run: dotnet restore
+      run: nuget restore
     - name: Build
       run: dotnet build --no-restore
     - name: Test
