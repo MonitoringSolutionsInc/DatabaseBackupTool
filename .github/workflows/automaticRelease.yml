@@ -7,6 +7,7 @@ jobs:
   Auto_create_new_release:
     #uncomment the line below to make this job only run if the PR has been merged (NOTE: Requires on: pull_request: [closed])
     #if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes')) && github.event.pull_request.merged == true }}
+    if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes')) }}
     runs-on: windows-latest
     env:
       FILENAME: DatabaseToolKit
@@ -103,6 +104,9 @@ jobs:
           [string]$vstring = $NewVersion
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
+
+      - name: update version - MANUAL
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'version change') }}
 
       - name: Create new release
         id: create_release
