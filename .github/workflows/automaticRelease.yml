@@ -18,17 +18,14 @@ jobs:
       - uses: nuget/setup-nuget@v1.0.5
 
       - name: Setup nuget.config
-        if: false
         run: |
           nuget source Add -Name "MonSol" -Source "https://nuget.pkg.github.com/MonitoringSolutionsInc/index.json" -username "${{ secrets.ORGANIZATION_REPO_ACCESS_USERNAME }}" -password "${{ secrets.ORGANIZATION_REPO_ACCESS }}"          
           nuget setApiKey "${{ secrets.ORGANIZATION_REPO_ACCESS }}" -Source "MonSol"
 
       - name: Restore dependencies
-        if: false
         run: nuget restore ${{ env.FILENAME }}.sln
 
       - name: set path for needed output files
-        if: false
         run: |
           [string]$csprojFile = (Get-ChildItem -path ${{ github.workspace }}/${{ env.FOLDER }} -Filter *.csproj | Select-Object -First 1).fullname
           [xml]$xml = Get-Content -path $csprojFile -Raw
@@ -39,7 +36,6 @@ jobs:
           } #now output is always here
 
       - name: Build main project
-        if: false
         run: dotnet build ./${{ env.FOLDER }}/${{ env.FILENAME }}.csproj
       
       - name: Zip needed files
@@ -53,12 +49,13 @@ jobs:
           }
           $listOfFiles.Substring(0, $listOfFiles.Length - 2 )
           echo $listOfFiles
-          #$compress = @{
-            #Path = "C:\Reference\Draftdoc.docx", "C:\Reference\Images\*.vsd"
-            #CompressionLevel = "Fastest"
-            #DestinationPath = "C:\Archives\Draft.Zip"
-          #}
-          #Compress-Archive @compress
+          $compress = @{
+            Path = "$listOfFiles"
+            CompressionLevel = "Fastest"
+            DestinationPath = "$path" + "${{ env.FOLDER }}" + ".zip"
+          }
+          Compress-Archive @compress
+          ls "$path"
 
       - name: get latest version
         shell: bash
