@@ -25,33 +25,24 @@ jobs:
       - name: Restore dependencies
         run: nuget restore ${{ env.FILENAME }}.sln
 
-      - name: Build main project
-        run: dotnet build ./${{ env.FOLDER }}/${{ env.FILENAME }}.csproj
-
-      - name: Get path for needed files
+      - name: set path for needed files
         run: |
           [string]$csprojFile = (Get-ChildItem -path ${{ github.workspace }}/${{ env.FOLDER }} -Filter *.csproj | Select-Object -First 1).fullname
           [xml]$xml = Get-Content -path $csprojFile -Raw
           $buildType = $xml.Project.PropertyGroup.Configuration.'#text' #returns debug or release
           foreach ($element in $xml.Project.PropertyGroup) {
             if ($element.Condition -match $buildType)
-            {
-            $outPath = $element.OutputPath
-            echo "output path = $outPath"
-            echo "buildFolder=$outPath" >> $GITHUB_ENV | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-            }
-          }
-          
+            {   $element.OutputPath= bin\Release\   } 
+          } #now output is always here
+
+      - name: Build main project
+        run: dotnet build ./${{ env.FOLDER }}/${{ env.FILENAME }}.csproj
       
       - name: Zip needed files
         shell: pwsh
         run: |
-          #$path = ${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}
-          ls ${{ github.workspace }}\${{ env.FOLDER }}
-          echo "env.buildFolder = ${{ env.buildFolder }}"
-          echo "buildFolder = $buildFolder"
-          echo $path
-
+          $path = ${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}\bin\Release\
+          ls $path
 
       - name: get latest version
         shell: bash
