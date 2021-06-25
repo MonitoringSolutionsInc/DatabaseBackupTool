@@ -107,6 +107,9 @@ jobs:
 
       - name: update version - MANUAL
         if: ${{ contains( github.event.pull_request.labels.*.name, 'version change') }}
+        run: |
+          echo "newVersion=${{ env.bashVersion }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "new version: ${{ env.bashVersion }}"
 
       - name: Create new release
         id: create_release
