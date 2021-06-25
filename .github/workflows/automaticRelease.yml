@@ -61,6 +61,7 @@ jobs:
           [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
           [string]$vstring = $NewVersion
           echo "newVersion=$vstring" >> $GITHUB_ENV
+          echo "new version: $vstring"
 
       - name: update version - minor
         if: ${{ contains( github.event.pull_request.labels.*.name, 'minor update') }}
