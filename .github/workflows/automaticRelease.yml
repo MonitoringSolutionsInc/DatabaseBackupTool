@@ -48,14 +48,14 @@ jobs:
           foreach ($element in $xml.list.include){
             if ($i -eq 0){
               $compress = @{
-                Path = "$path\$element"
+                Path = "$path$element"
                 CompressionLevel = "Fastest"
                 DestinationPath = "$path\${{ env.FOLDER }}.zip"
               }
               Compress-Archive @compress  
               $i = 1  
             } else {
-              Compress-Archive -Path "$path\$element" -Update -DestinationPath "$path\${{ env.FOLDER }}.zip"
+              Compress-Archive -Path "$path$element" -Update -DestinationPath "$path${{ env.FOLDER }}.zip"
             }
           }
           ls "$path"
