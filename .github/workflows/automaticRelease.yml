@@ -45,9 +45,16 @@ jobs:
           [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
           [xml]$xml = Get-Content -path $FilesToZip -Raw
           foreach ($element in $xml.list.include){
-            $listOfFiles += $element
+            $listOfFiles += "$element" + ", "
           }
+          $listOfFiles.Substring(0, $listOfFiles.Length -1 )
           echo $listOfFiles
+          #$compress = @{
+            #Path = "C:\Reference\Draftdoc.docx", "C:\Reference\Images\*.vsd"
+            #CompressionLevel = "Fastest"
+            #DestinationPath = "C:\Archives\Draft.Zip"
+          #}
+          #Compress-Archive @compress
 
       - name: get latest version
         shell: bash
