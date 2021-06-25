@@ -44,7 +44,7 @@ jobs:
           $path = "${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}\bin\Release\"
           [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
           [xml]$xml = Get-Content -path $FilesToZip -Raw
-          foreach ($element in $xml.list){
+          foreach ($element in $xml.list.include){
             $listOfFiles += $element
           }
           echo $listOfFiles
