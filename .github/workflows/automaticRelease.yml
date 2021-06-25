@@ -42,7 +42,12 @@ jobs:
         shell: pwsh
         run: |
           $path = "${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}\bin\Release\"
-          ls $path
+          [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
+          [xml]$xml = Get-Content -path $FilesToZip -Raw
+          foreach ($element in $xml.list){
+            $listOfFiles += $element
+          }
+          echo $listOfFiles
 
       - name: get latest version
         shell: bash
