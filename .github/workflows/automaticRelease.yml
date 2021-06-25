@@ -46,7 +46,7 @@ jobs:
           [xml]$xml = Get-Content -path $FilesToZip -Raw
           $i = 0
           foreach ($element in $xml.list.include){
-            if (i -eq 0){
+            if ($i -eq 0){
               $compress = @{
                 Path = "$path" + "$element"
                 CompressionLevel = "Fastest"
