@@ -92,17 +92,18 @@ namespace DatabaseBackupTool
 
         }
 
-
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG1");
         }
+
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete1 = e.ProgressPercentage;
             ProgressChanged("BG1");
         }
+
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
@@ -113,32 +114,34 @@ namespace DatabaseBackupTool
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG3");           
         }
+
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete3 = e.ProgressPercentage;
             ProgressChanged("BG3");
         }
+
         private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG4");
         }
+
         private void backgroundWorker4_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete4 = e.ProgressPercentage;
             ProgressChanged("BG4");
         }
+
         private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         private void backgroundWorker5_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -151,11 +154,11 @@ namespace DatabaseBackupTool
             percentComplete5 = e.ProgressPercentage;
             ProgressChanged("BG5");
         }
+
         private void backgroundWorker5_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         //Worker 2 is responsible for turning the path variable red if the path is incorrect in real time.
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
@@ -167,6 +170,7 @@ namespace DatabaseBackupTool
                 worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
             }
         }
+
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (Directory.Exists(restoreDirectoryTextBox.Text))
@@ -174,6 +178,7 @@ namespace DatabaseBackupTool
             else
                 restoreDirectoryTextBox.BackColor = Color.Red;
         }
+
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
         {
             restoreDirectoryTextBox.Enabled = true;
@@ -204,7 +209,6 @@ namespace DatabaseBackupTool
             conn = null;
         }
 
-
         private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn, String workersName)
         {
             string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
@@ -228,7 +232,6 @@ namespace DatabaseBackupTool
                 Logger.Error(ex, $"An error occurred while attempting to restore {databaseName}");
             }
         }
-
 
         //checks over all databases that were restored and checks there state. If any are stuck in restoring state, then restore them again (single threaded at this point)
         private void stuckRestoringCheck(string[] filesToRestore, SQLConnector conn)
@@ -336,6 +339,7 @@ namespace DatabaseBackupTool
             progressBar1.Value = work;
             progressBarLabel.Text = $"{work}% Complete";
         }
+
         private void completed()
         {
             if (backgroundFinished >= 3) //run only when all threads are done
@@ -353,6 +357,7 @@ namespace DatabaseBackupTool
             else
                 backgroundFinished++;
         }
+
         private SQLConnector connectToSQL()
         {             
             SQLConnector conn = null;
