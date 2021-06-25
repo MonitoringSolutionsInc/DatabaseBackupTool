@@ -44,17 +44,20 @@ jobs:
           $path = "${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}bin\Release\"
           [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
           [xml]$xml = Get-Content -path $FilesToZip -Raw
+          $i = 0
           foreach ($element in $xml.list.include){
-            $listOfFiles += $path + $element + ", "
+            if (i -eq 0){
+              $compress = @{
+                Path = "$path" + "$element"
+                CompressionLevel = "Fastest"
+                DestinationPath = "$path" + "${{ env.FOLDER }}" + ".zip"
+              }
+              Compress-Archive @compress  
+              $i = 1  
+            } else {
+              Compress-Archive -Path "$path"+"$element" -Update -DestinationPath "$path" + "${{ env.FOLDER }}" + ".zip"
+            }
           }
-          $listOfFiles = $listOfFiles.Substring(0, $listOfFiles.Length - 2 )
-          echo $listOfFiles
-          $compress = @{
-            Path = "$listOfFiles"
-            CompressionLevel = "Fastest"
-            DestinationPath = "$path" + "${{ env.FOLDER }}" + ".zip"
-          }
-          Compress-Archive @compress
           ls "$path"
 
       - name: get latest version
