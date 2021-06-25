@@ -32,6 +32,9 @@ jobs:
         run: |
           [version]$version = '${{ env.bashVersion }}'
           echo $version
+          [string]$vstring = $version
+          echo $vstring
+          [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
 
 
   PR_close_no_merge:
