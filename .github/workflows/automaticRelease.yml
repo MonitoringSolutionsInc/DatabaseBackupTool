@@ -47,11 +47,9 @@ jobs:
         shell: pwsh
         run: |
           #$path = ${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}
-          echo "github workspace: ${{ github.workspace }}"
-          ls ${{ github.workspace }}
-          echo "env.folder = ${{ env.FOLDER }}"
           ls ${{ github.workspace }}\${{ env.FOLDER }}
           echo "env.buildFolder = ${{ env.buildFolder }}"
+          echo "buildFolder = $buildFolder"
           echo $path
 
 
