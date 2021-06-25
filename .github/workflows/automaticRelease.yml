@@ -41,7 +41,7 @@ jobs:
       - name: Zip needed files
         shell: pwsh
         run: |
-          $path = ${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}\bin\Release\
+          $path = "${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}\bin\Release\"
           ls $path
 
       - name: get latest version
