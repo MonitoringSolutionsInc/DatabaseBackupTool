@@ -22,7 +22,6 @@ namespace DatabaseBackupTool
         private int backgroundFinished = 0;
         private readonly object key = new object();
         private int i = -1; //must start at -1 or program misses zero'th index of backups
-        private Boolean checkDone = false;
         DateTime startTime;
         DateTime startTime1;
         DateTime startTime3;
@@ -236,38 +235,29 @@ namespace DatabaseBackupTool
         //checks over all databases that were restored and checks there state. If any are stuck in restoring state, then restore them again (single threaded at this point)
         private void stuckRestoringCheck(string[] filesToRestore, SQLConnector conn)
         {
-            conn.Open();
-
-            var dbResults = conn.ReadResults(conn.CreateCommand("SELECT NAME FROM SYS.DATABASES WHERE NAME NOT IN ('tempdb', 'master', 'model', 'msdb')"));
             List<string> databases = new List<string>();
-            while(dbResults.Read())
+            List<string> fileList = new List<string>();
+            
+            foreach (var db in filesToRestore)
+            {
+                fileList.Add(db.Split('\\').Last().Split('.').First());
+            }
+
+            conn.Open();
+            var dbResults = conn.ReadResults(conn.CreateCommand("SELECT NAME FROM SYS.DATABASES WHERE NAME NOT IN ('tempdb', 'master', 'model', 'msdb')"));
+            while (dbResults.Read())
             {
                 databases.Add(dbResults[0].ToString());
             }
-
             conn.Close();
-            Boolean keepgoing = true;
-            //make sure all other background workers are done with their restoring before proceeding
-            while (keepgoing)
-            {
-                int workersWorking = 0;
-                if (backgroundWorker1.IsBusy)
-                    workersWorking++;                
-                if (backgroundWorker3.IsBusy)
-                    workersWorking++;
-                if (backgroundWorker4.IsBusy)
-                    workersWorking++;
-                if (backgroundWorker5.IsBusy)
-                    workersWorking++;
+            
+            IEnumerable<string> dbInSqlAndInRestoreList = databases.Intersect<string>(fileList);
+            
+            while (WorkersAreFinishingUp());
 
-                if (workersWorking == 1)
-                    keepgoing = false;
-            }
-
-            //Console.Clear(); //this line seems to cause problems for some reason. didn't investigate, just disabled since non-essential
-            for (int i = 0; i < databases.Count; i++)
+            int i = 0;
+            foreach (string dbName in dbInSqlAndInRestoreList)
             {
-                string dbName = databases[i];
                 string sql_check_state = $"SELECT DATABASEPROPERTYEX('{dbName}', 'Status')";
                 string result;
 
@@ -302,7 +292,25 @@ namespace DatabaseBackupTool
                     restoreDatabase(i, filesToRestore, conn, "Final Check");
                     i = -1; //reset, start check over again to check this one again
                 }
+                i++;
             }
+        }
+
+        private bool WorkersAreFinishingUp()
+        {
+            int workersWorking = 0;
+            if (backgroundWorker1.IsBusy)
+                workersWorking++;
+            if (backgroundWorker3.IsBusy)
+                workersWorking++;
+            if (backgroundWorker4.IsBusy)
+                workersWorking++;
+            if (backgroundWorker5.IsBusy)
+                workersWorking++;
+
+            if (workersWorking == 1)
+                return false;
+            return true;
         }
 
         private void ProgressChanged(string who)
