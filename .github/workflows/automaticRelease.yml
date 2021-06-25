@@ -33,8 +33,7 @@ jobs:
           [string]$csprojFile = (Get-ChildItem -path ${{ github.workspace }}/${{ env.FOLDER }} -Filter *.csproj | Select-Object -First 1).fullname
           [xml]$xml = Get-Content -path $csprojFile -Raw
           $buildType = $xml.Project.PropertyGroup.Configuration.'#text' #returns debug or release
-          foreach ($element in $xml.Project.PropertyGroup)
-          >> {
+          foreach ($element in $xml.Project.PropertyGroup) {
           >>    if ($element.Condition -match $buildType)
           >>    {
           >>      $outPath = $element.OutputPath
