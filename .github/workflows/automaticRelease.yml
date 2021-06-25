@@ -30,7 +30,7 @@ jobs:
       - name: update version
         shell: pwsh
         run: |
-          [version]$version = ${{ env.bashVersion }}
+          [version]$version = [version]::parse(${{ env.bashVersion }})
           echo $version
 
 
