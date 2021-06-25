@@ -17,6 +17,11 @@ jobs:
 
       - uses: nuget/setup-nuget@v1.0.5
 
+      - name: Setup nuget.config
+        run: |
+          nuget source Add -Name "MonSol" -Source "https://nuget.pkg.github.com/MonitoringSolutionsInc/index.json" -username "${{ secrets.ORGANIZATION_REPO_ACCESS_USERNAME }}" -password "${{ secrets.ORGANIZATION_REPO_ACCESS }}"          
+          nuget setApiKey "${{ secrets.ORGANIZATION_REPO_ACCESS }}" -Source "MonSol"
+
       - name: Restore dependencies
         run: nuget restore ${{ env.FILENAME }}.sln
 
