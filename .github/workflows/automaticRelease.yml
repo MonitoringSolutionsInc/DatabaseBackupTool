@@ -1,10 +1,10 @@
-name: Update Nuget Package
+name: Automatically create a new release with updated tag
 
 # only trigger on pull request closed events
 on: pull_request
 
 jobs:
-  Publish_new_nuget_package:
+  Auto create new release:
     #uncomment the line below to make this job only run if the PR has been merged (NOTE: Requires on: pull_request: [closed])
     #if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes')) && github.event.pull_request.merged == true }}
     runs-on: windows-latest
@@ -38,17 +38,19 @@ jobs:
             {
             $outPath = $element.OutputPath
             echo "output path = $outPath"
+            echo "buildFolder=$outPath" >> $GITHUB_ENV
             }
           }
-          echo "buildFolder=$outPath" >> $GITHUB_ENV
+          
       
       - name: Zip needed files
         shell: pwsh
         run: |
           #$path = ${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}
           echo "github workspace: ${{ github.workspace }}"
+          ls ${{ github.workspace }}
           echo "env.folder = ${{ env.FOLDER }}"
-          echo "env.buildfolder = ${{ env.buildFolder }}"
+          echo "env.buildFolder = ${{ env.buildFolder }}"
           echo $path
 
 
