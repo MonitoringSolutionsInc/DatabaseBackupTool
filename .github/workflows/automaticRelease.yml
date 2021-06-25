@@ -34,12 +34,12 @@ jobs:
           [xml]$xml = Get-Content -path $csprojFile -Raw
           $buildType = $xml.Project.PropertyGroup.Configuration.'#text' #returns debug or release
           foreach ($element in $xml.Project.PropertyGroup) {
-          >>    if ($element.Condition -match $buildType)
-          >>    {
-          >>      $outPath = $element.OutputPath
-          >>      echo "output path = $outPath"
-          >>    }
-          >> }
+            if ($element.Condition -match $buildType)
+            {
+            $outPath = $element.OutputPath
+            echo "output path = $outPath"
+            }
+          }
           echo "buildFolder=$outPath" >> $GITHUB_ENV
       
       - name: Zip needed files
