@@ -55,7 +55,7 @@ jobs:
               Compress-Archive @compress  
               $i = 1  
             } else {
-              Compress-Archive -Path "$path"+"$element" -Update -DestinationPath "$path" + "${{ env.FOLDER }}" + ".zip"
+              Compress-Archive -Path "$path\$element" -Update -DestinationPath "$path\${{ env.FOLDER }}.zip"
             }
           }
           ls "$path"
