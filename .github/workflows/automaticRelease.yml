@@ -90,7 +90,8 @@ jobs:
           echo $version
           [version]$NewVersion = [version]::new($Version.Major, ($Version.Minor + 1), $Version.Build)
           [string]$vstring = $NewVersion
-          echo "newVersion=$vstring" >> $GITHUB_ENV
+          echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "new version: $vstring"
 
       - name: update version - major
         if: ${{ contains( github.event.pull_request.labels.*.name, 'major update') }}
