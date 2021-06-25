@@ -21,7 +21,7 @@ jobs:
       #  run: dotnet build ./DatabaseBackupTool/DatabaseToolKit.csproj
 
       - name: get latest version
-      - shell: bash
+        shell: bash
         run: |
           getLatest=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/MonitoringSolutionsInc/DatabaseBackupTool/git/matching-refs/tags | grep -o 'v....."' | tail -n1)
           output="${getLatest:1:-1}"
