@@ -47,7 +47,7 @@ jobs:
           foreach ($element in $xml.list.include){
             $listOfFiles += $path + $element + ", "
           }
-          $listOfFiles.Substring(0, $listOfFiles.Length - 3 )
+          $listOfFiles = $listOfFiles.Substring(0, $listOfFiles.Length - 2 )
           echo $listOfFiles
           $compress = @{
             Path = "$listOfFiles"
