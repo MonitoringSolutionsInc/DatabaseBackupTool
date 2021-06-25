@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <list>
 	<include>DatabaseBackupTool.exe</include>
-	<include>DatabaseBackupTool.config</include>
+	<include>DatabaseBackupTool.exe.config</include>
 	<include>NLog.dll</include>
 	<include>NLog.xml</include>
 	<include>NLog.config</include>
