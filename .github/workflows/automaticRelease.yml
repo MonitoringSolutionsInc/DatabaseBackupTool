@@ -41,7 +41,7 @@ jobs:
       - name: Zip needed files
         shell: pwsh
         run: |
-          $path = "${{ github.workspace }}\${{ env.FOLDER }}\${{ env.buildFolder }}bin\Release\"
+          $path = "${{ github.workspace }}\${{ env.FOLDER }}\bin\Release\"
           [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
           [xml]$xml = Get-Content -path $FilesToZip -Raw
           $i = 0
@@ -100,7 +100,6 @@ jobs:
           echo "newVersion=$vstring" >> $GITHUB_ENV
 
       - name: Create new release
-        if: false
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -115,15 +114,14 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        if: false
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./my-artifact.zip
-          asset_name: my-artifact.zip
+          asset_path: "${{ github.workspace }}\${{ env.FOLDER }}\\bin\Release\${{ env.Folder }}.zip"
+          asset_name: ${{ env.Folder }}.zip
           asset_content_type: application/zip
 
 
