@@ -77,7 +77,7 @@ jobs:
         run: |
           [version]$version = '${{ env.bashVersion }}'
           echo $version
-          [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
+          [version]$NewVersion = [version]::new( $Version.Major, $Version.Minor, ($Version.Build + 1) )
           [string]$vstring = $NewVersion
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
@@ -88,7 +88,7 @@ jobs:
         run: |
           [version]$version = '${{ env.bashVersion }}'
           echo $version
-          [version]$NewVersion = [version]::new($Version.Major, ($Version.Minor + 1), $Version.Build)
+          [version]$NewVersion = [version]::new( $Version.Major, ($Version.Minor + 1), 0 )
           [string]$vstring = $NewVersion
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
@@ -99,7 +99,7 @@ jobs:
         run: |
           [version]$version = '${{ env.bashVersion }}'
           echo $version
-          [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
+          [version]$NewVersion = [version]::new( ($Version.Major + 1), 0, 0 )
           [string]$vstring = $NewVersion
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
