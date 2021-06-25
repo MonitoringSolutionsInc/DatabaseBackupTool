@@ -101,7 +101,8 @@ jobs:
           echo $version
           [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
           [string]$vstring = $NewVersion
-          echo "newVersion=$vstring" >> $GITHUB_ENV
+          echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "new version: $vstring"
 
       - name: Create new release
         id: create_release
