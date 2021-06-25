@@ -1,13 +1,14 @@
 name: Automatically create a new release with updated tag
 
 # only trigger on pull request closed events
-on: pull_request
+on:
+  pull_request:
+    types: [ closed ]
 
 jobs:
   Auto_create_new_release:
-    #uncomment the line below to make this job only run if the PR has been merged (NOTE: Requires on: pull_request: [closed])
-    #if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes')) && github.event.pull_request.merged == true }}
-    if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes')) }}
+    #uncomment the line below to make this job only run if the PR has been merged (NOTE: Requires on: pull_request: [closed] )
+    if: ${{ !(contains( github.event.pull_request.labels.*.name, 'no code changes')) && github.event.pull_request.merged == true }}
     runs-on: windows-latest
     env:
       FILENAME: DatabaseToolKit
@@ -73,7 +74,7 @@ jobs:
           echo "bashVersion=$output" >> $GITHUB_ENV
 
       - name: update version - patch
-        if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes') || contains( github.event.pull_request.labels.*.name, 'minor update') || contains( github.event.pull_request.labels.*.name, 'major update')) }}
+        if: ${{ !(contains( github.event.pull_request.labels.*.name, 'minor update') || contains( github.event.pull_request.labels.*.name, 'major update')) }}
         shell: pwsh
         run: |
           [version]$version = '${{ env.bashVersion }}'
@@ -105,12 +106,6 @@ jobs:
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
 
-      - name: update version - MANUAL
-        if: ${{ contains( github.event.pull_request.labels.*.name, 'version change') }}
-        run: |
-          echo "newVersion=${{ env.bashVersion }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-          echo "new version: ${{ env.bashVersion }}"
-
       - name: Create new release
         id: create_release
         uses: actions/create-release@v1
@@ -120,7 +115,7 @@ jobs:
           tag_name: ${{ env.newVersion }}
           release_name: Database Backup and Restore Tool
           body: |
-            # This release was created automatically though GitHub Actions.
+            ### This release was created automatically though GitHub Actions.
             Please see README for documentation
             download and extract the zip to get started
             OR check out the link below for the MonSol Digital Toolbox and download it with that app
@@ -147,8 +142,9 @@ jobs:
     steps:
     - run: |
         echo PR #${{ github.event.number }} has been closed without being merged
+        
   PR_closed_or_merged_NO_PACKAGE_UPDATE:
-    if: ${{ contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes') }}  
+    if: ${{ contains( github.event.pull_request.labels.*.name, 'no code changes') }}  
     runs-on: windows-latest
     steps:
-    - run: echo "Hello, if you are seeing this text that means the automatic version incremenet did not take place because of the labels attached to this pull request. Namely :no code changes, and version change"
+    - run: echo "Hello, if you are seeing this text that means the automatic version incremenet did not take place because of the labels attached to this pull request. Namely no code changes"
