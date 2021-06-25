@@ -26,11 +26,11 @@ jobs:
           getLatest=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/MonitoringSolutionsInc/DatabaseBackupTool/git/matching-refs/tags | grep -o 'v....."' | tail -n1)
           output="${getLatest:1:-1}"
           echo $output
-          echo "::set-env name=bashVersion::$output"
+          echo "bashVersion=$output" >> $GITHUB_ENV
       - name: update version
         shell: pwsh
         run: |
-          [version]$version = env.bashVersion
+          [version]$version = ${{ env.bashVersion }}
           echo $version
 
 
