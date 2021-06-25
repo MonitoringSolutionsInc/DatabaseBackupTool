@@ -25,14 +25,14 @@ jobs:
       - name: Restore dependencies
         run: nuget restore ${{ env.FILENAME }}.sln
 
-      - name: set path for needed files
+      - name: set path for needed output files
         run: |
           [string]$csprojFile = (Get-ChildItem -path ${{ github.workspace }}/${{ env.FOLDER }} -Filter *.csproj | Select-Object -First 1).fullname
           [xml]$xml = Get-Content -path $csprojFile -Raw
           $buildType = $xml.Project.PropertyGroup.Configuration.'#text' #returns debug or release
           foreach ($element in $xml.Project.PropertyGroup) {
             if ($element.Condition -match $buildType)
-            {   $element.OutputPath= bin\Release\   } 
+            {   $element.OutputPath= "bin\Release\"   } 
           } #now output is always here
 
       - name: Build main project
