@@ -112,7 +112,10 @@ jobs:
           release_name: Database Backup and Restore Tool
           body: |
             This release was created automatically though GitHub Actions.
-            Download DatabaseBackupTool.zip 
+            Please see README for documentation
+            download and extract the zip to get started
+            OR check out the link below for the MonSol Digital Toolbox and download it with that app
+            https://github.com/MonitoringSolutionsInc/MonSol-Digital-Toolbox/releases/latest 
           draft: false
           prerelease: false
 
