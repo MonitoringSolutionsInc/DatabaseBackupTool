@@ -27,14 +27,35 @@ jobs:
           output="${getLatest:1:-1}"
           echo $output
           echo "bashVersion=$output" >> $GITHUB_ENV
-      - name: update version
+      - name: update version - patch
+        if: ${{ !(contains( github.event.pull_request.labels.*.name, 'version change') || contains( github.event.pull_request.labels.*.name, 'no code changes') || contains( github.event.pull_request.labels.*.name, 'minor update') || contains( github.event.pull_request.labels.*.name, 'major update')) }}
         shell: pwsh
         run: |
           [version]$version = '${{ env.bashVersion }}'
           echo $version
-          [string]$vstring = $version
-          echo $vstring
           [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
+          [string]$vstring = $NewVersion
+          echo $vstring
+
+      - name: update version - minor
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'minor update') }}
+        shell: pwsh
+        run: |
+          [version]$version = '${{ env.bashVersion }}'
+          echo $version
+          [version]$NewVersion = [version]::new($Version.Major, ($Version.Minor + 1), $Version.Build)
+          [string]$vstring = $NewVersion
+          echo $vstring
+
+      - name: update version - major
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'major update') }}
+        shell: pwsh
+        run: |
+          [version]$version = '${{ env.bashVersion }}'
+          echo $version
+          [version]$NewVersion = [version]::new($Version.Major, $Version.Minor, ($Version.Build + 1))
+          [string]$vstring = $NewVersion
+          echo $vstring
 
 
   PR_close_no_merge:
