@@ -87,6 +87,7 @@ namespace DatabaseBackupTool
                     backgroundWorkerRestore2.RunWorkerAsync();
                     backgroundWorkerRestore3.RunWorkerAsync();
                     backgroundWorkerRestore4.RunWorkerAsync();
+                    backgroundWorkerPathCheck.CancelAsync();
                 }
             }
 
@@ -349,6 +350,7 @@ namespace DatabaseBackupTool
                 Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
+                backgroundWorkerPathCheck.RunWorkerAsync();
             }
             else
                 backgroundFinished++;
