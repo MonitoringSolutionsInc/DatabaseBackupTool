@@ -162,7 +162,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            while (keepGoing)
+            while (!backgroundWorkerPathCheck.CancellationPending)
             {
                 System.Threading.Thread.Sleep(100); //change update rate of text box in milliseconds (cannot be zero)
                 worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
