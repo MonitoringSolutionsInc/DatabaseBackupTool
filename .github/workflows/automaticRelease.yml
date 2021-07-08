@@ -36,6 +36,7 @@ jobs:
             if ($element.Condition -match $buildType)
             {   $element.OutputPath= "bin\Release\"   } 
           } #now output is always here
+          $xml.Save($csprojFile)
 
       - name: Build main project
         run: dotnet build ./${{ env.FOLDER }}/${{ env.FILENAME }}.csproj
@@ -65,13 +66,23 @@ jobs:
           }
           ls "$path"
 
-      - name: get latest version
-        shell: bash
+      - uses: oprypin/find-latest-tag@v1
+        id: latestVersion
+        with:
+          repository: ${{ github.repository }}
+          releases-only: true
+          token: ${{ secrets.GITHUB_TOKEN}}
+
+      - name: Fix Latest Version by remove preceding v (if present) and set env variable
         run: |
-          getLatest=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/MonitoringSolutionsInc/DatabaseBackupTool/git/matching-refs/tags | grep -o 'v....."' | tail -n1) 
-          output="${getLatest:1:-1}"
+          $version = "${{ steps.latestVersion.outputs.tag }}"
+          if ($version -match 'v'){
+            $output = $version.substring(1)
+          } else {
+            $output = $version
+          }
+          echo "bashVersion=$output" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo $output
-          echo "bashVersion=$output" >> $GITHUB_ENV
 
       - name: update version - patch
         if: ${{ !(contains( github.event.pull_request.labels.*.name, 'minor update') || contains( github.event.pull_request.labels.*.name, 'major update')) }}
