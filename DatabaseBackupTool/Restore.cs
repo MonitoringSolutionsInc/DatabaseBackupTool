@@ -34,13 +34,13 @@ namespace DatabaseBackupTool
         {
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            backgroundWorker1.WorkerReportsProgress = true;
-            backgroundWorker2.WorkerReportsProgress = true;
-            backgroundWorker2.WorkerSupportsCancellation = true;
-            backgroundWorker3.WorkerReportsProgress = true;
-            backgroundWorker4.WorkerReportsProgress = true;
-            backgroundWorker5.WorkerReportsProgress = true;
-            backgroundWorker2.RunWorkerAsync();
+            backgroundWorkerRestore1.WorkerReportsProgress = true;
+            backgroundWorkerPathCheck.WorkerReportsProgress = true;
+            backgroundWorkerPathCheck.WorkerSupportsCancellation = true;
+            backgroundWorkerRestore2.WorkerReportsProgress = true;
+            backgroundWorkerRestore3.WorkerReportsProgress = true;
+            backgroundWorkerRestore4.WorkerReportsProgress = true;
+            backgroundWorkerPathCheck.RunWorkerAsync();
         }
 
         private void chooseDirectoryButton_Click(object sender, EventArgs e)
@@ -52,7 +52,7 @@ namespace DatabaseBackupTool
 
         private void startRestore_Click(object sender, EventArgs e)
         {
-            if(!backgroundWorker1.IsBusy)
+            if(!backgroundWorkerRestore1.IsBusy)
             {
                 progressBar1.Value = 0;
                 restoreDirectoryTextBox.Enabled = false;
@@ -82,10 +82,11 @@ namespace DatabaseBackupTool
                     startTime5 = DateTime.Now;
                     i = -1;
                     Logger.Info("Starting Background Workers ...");
-                    backgroundWorker1.RunWorkerAsync();
-                    backgroundWorker3.RunWorkerAsync();
-                    backgroundWorker4.RunWorkerAsync();
-                    backgroundWorker5.RunWorkerAsync();
+                    backgroundWorkerRestore1.RunWorkerAsync();
+                    backgroundWorkerRestore2.RunWorkerAsync();
+                    backgroundWorkerRestore3.RunWorkerAsync();
+                    backgroundWorkerRestore4.RunWorkerAsync();
+                    backgroundWorkerPathCheck.CancelAsync();
                 }
             }
 
@@ -163,7 +164,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            while (keepGoing)
+            while (!backgroundWorkerPathCheck.CancellationPending)
             {
                 System.Threading.Thread.Sleep(100); //change update rate of text box in milliseconds (cannot be zero)
                 worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
@@ -299,13 +300,13 @@ namespace DatabaseBackupTool
         private bool WorkersAreFinishingUp()
         {
             int workersWorking = 0;
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorkerRestore1.IsBusy)
                 workersWorking++;
-            if (backgroundWorker3.IsBusy)
+            if (backgroundWorkerRestore2.IsBusy)
                 workersWorking++;
-            if (backgroundWorker4.IsBusy)
+            if (backgroundWorkerRestore3.IsBusy)
                 workersWorking++;
-            if (backgroundWorker5.IsBusy)
+            if (backgroundWorkerRestore4.IsBusy)
                 workersWorking++;
 
             if (workersWorking == 1)
@@ -361,6 +362,7 @@ namespace DatabaseBackupTool
                 Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
                 progressBarLabel.Text = $"100% Complete";
+                backgroundWorkerPathCheck.RunWorkerAsync();
             }
             else
                 backgroundFinished++;
@@ -392,7 +394,7 @@ namespace DatabaseBackupTool
         private void Restore_FormClosing(object sender, FormClosingEventArgs e)
         {
             keepGoing = false;
-            backgroundWorker2.CancelAsync();
+            backgroundWorkerPathCheck.CancelAsync();
         }
     }
 }
