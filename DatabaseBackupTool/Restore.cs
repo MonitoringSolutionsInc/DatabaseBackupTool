@@ -300,13 +300,13 @@ namespace DatabaseBackupTool
         private bool WorkersAreFinishingUp()
         {
             int workersWorking = 0;
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorkerRestore1.IsBusy)
                 workersWorking++;
-            if (backgroundWorker3.IsBusy)
+            if (backgroundWorkerRestore2.IsBusy)
                 workersWorking++;
-            if (backgroundWorker4.IsBusy)
+            if (backgroundWorkerRestore3.IsBusy)
                 workersWorking++;
-            if (backgroundWorker5.IsBusy)
+            if (backgroundWorkerRestore4.IsBusy)
                 workersWorking++;
 
             if (workersWorking == 1)
