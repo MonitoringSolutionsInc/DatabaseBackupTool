@@ -22,7 +22,6 @@ namespace DatabaseBackupTool
         private int backgroundFinished = 0;
         private readonly object key = new object();
         private int i = -1; //must start at -1 or program misses zero'th index of backups
-        private Boolean checkDone = false;
         DateTime startTime;
         DateTime startTime1;
         DateTime startTime3;
@@ -92,17 +91,18 @@ namespace DatabaseBackupTool
 
         }
 
-
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG1");
         }
+
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete1 = e.ProgressPercentage;
             ProgressChanged("BG1");
         }
+
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
@@ -113,32 +113,34 @@ namespace DatabaseBackupTool
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG3");           
         }
+
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete3 = e.ProgressPercentage;
             ProgressChanged("BG3");
         }
+
         private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG4");
         }
+
         private void backgroundWorker4_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete4 = e.ProgressPercentage;
             ProgressChanged("BG4");
         }
+
         private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         private void backgroundWorker5_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -151,11 +153,11 @@ namespace DatabaseBackupTool
             percentComplete5 = e.ProgressPercentage;
             ProgressChanged("BG5");
         }
+
         private void backgroundWorker5_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             completed();
         }
-
 
         //Worker 2 is responsible for turning the path variable red if the path is incorrect in real time.
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
@@ -167,6 +169,7 @@ namespace DatabaseBackupTool
                 worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
             }
         }
+
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (Directory.Exists(restoreDirectoryTextBox.Text))
@@ -174,6 +177,7 @@ namespace DatabaseBackupTool
             else
                 restoreDirectoryTextBox.BackColor = Color.Red;
         }
+
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
         {
             restoreDirectoryTextBox.Enabled = true;
@@ -204,7 +208,6 @@ namespace DatabaseBackupTool
             conn = null;
         }
 
-
         private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn, String workersName)
         {
             string databaseName = filesToRestore[i].Split('\\').Last().Split('.').First();
@@ -229,42 +232,32 @@ namespace DatabaseBackupTool
             }
         }
 
-
         //checks over all databases that were restored and checks there state. If any are stuck in restoring state, then restore them again (single threaded at this point)
         private void stuckRestoringCheck(string[] filesToRestore, SQLConnector conn)
         {
-            conn.Open();
-
-            var dbResults = conn.ReadResults(conn.CreateCommand("SELECT NAME FROM SYS.DATABASES WHERE NAME NOT IN ('tempdb', 'master', 'model', 'msdb')"));
             List<string> databases = new List<string>();
-            while(dbResults.Read())
+            List<string> fileList = new List<string>();
+            
+            foreach (var db in filesToRestore)
+            {
+                fileList.Add(db.Split('\\').Last().Split('.').First());
+            }
+
+            conn.Open();
+            var dbResults = conn.ReadResults(conn.CreateCommand("SELECT NAME FROM SYS.DATABASES WHERE NAME NOT IN ('tempdb', 'master', 'model', 'msdb')"));
+            while (dbResults.Read())
             {
                 databases.Add(dbResults[0].ToString());
             }
-
             conn.Close();
-            Boolean keepgoing = true;
-            //make sure all other background workers are done with their restoring before proceeding
-            while (keepgoing)
-            {
-                int workersWorking = 0;
-                if (backgroundWorker1.IsBusy)
-                    workersWorking++;                
-                if (backgroundWorker3.IsBusy)
-                    workersWorking++;
-                if (backgroundWorker4.IsBusy)
-                    workersWorking++;
-                if (backgroundWorker5.IsBusy)
-                    workersWorking++;
+            
+            IEnumerable<string> dbInSqlAndInRestoreList = databases.Intersect<string>(fileList);
+            
+            while (WorkersAreFinishingUp());
 
-                if (workersWorking == 1)
-                    keepgoing = false;
-            }
-
-            //Console.Clear(); //this line seems to cause problems for some reason. didn't investigate, just disabled since non-essential
-            for (int i = 0; i < databases.Count; i++)
+            int i = 0;
+            foreach (string dbName in dbInSqlAndInRestoreList)
             {
-                string dbName = databases[i];
                 string sql_check_state = $"SELECT DATABASEPROPERTYEX('{dbName}', 'Status')";
                 string result;
 
@@ -299,7 +292,25 @@ namespace DatabaseBackupTool
                     restoreDatabase(i, filesToRestore, conn, "Final Check");
                     i = -1; //reset, start check over again to check this one again
                 }
+                i++;
             }
+        }
+
+        private bool WorkersAreFinishingUp()
+        {
+            int workersWorking = 0;
+            if (backgroundWorker1.IsBusy)
+                workersWorking++;
+            if (backgroundWorker3.IsBusy)
+                workersWorking++;
+            if (backgroundWorker4.IsBusy)
+                workersWorking++;
+            if (backgroundWorker5.IsBusy)
+                workersWorking++;
+
+            if (workersWorking == 1)
+                return false;
+            return true;
         }
 
         private void ProgressChanged(string who)
@@ -336,6 +347,7 @@ namespace DatabaseBackupTool
             progressBar1.Value = work;
             progressBarLabel.Text = $"{work}% Complete";
         }
+
         private void completed()
         {
             if (backgroundFinished >= 3) //run only when all threads are done
@@ -353,6 +365,7 @@ namespace DatabaseBackupTool
             else
                 backgroundFinished++;
         }
+
         private SQLConnector connectToSQL()
         {             
             SQLConnector conn = null;
