@@ -83,6 +83,10 @@ namespace DatabaseBackupTool
                     startTime5 = DateTime.Now;
                     progressBarLabel.Text = $"0% Complete";
                     progressBar1.Value = 0;
+                    percentComplete1 = 0;
+                    percentComplete3 = 0;
+                    percentComplete4 = 0;
+                    percentComplete5 = 0;
                     i = -1;
                     Logger.Info("Starting Background Workers ...");
                     backgroundWorker1.RunWorkerAsync();
