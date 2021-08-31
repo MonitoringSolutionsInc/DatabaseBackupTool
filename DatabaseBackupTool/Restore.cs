@@ -52,48 +52,48 @@ namespace DatabaseBackupTool
 
         private void startRestore_Click(object sender, EventArgs e)
         {
-            if(!backgroundWorkerRestore1.IsBusy)
-            {
-                progressBar1.Value = 0;
-                restoreDirectoryTextBox.Enabled = false;
-                recursiveBox.Enabled = false;
+            if (backgroundWorkerRestore1.IsBusy)
+                return;
 
-                if (!Directory.Exists(restoreDirectoryTextBox.Text)) //if directory doesn't exist, set to some bogus place with no backup files and show error form
-                {
-                    restoreDirectoryTextBox.BackColor = Color.Red;
-                    string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
-                    Exception myException = new Exception(myMessage);
-                    Logger.Error(myException);
-                    ErrorForm ef = new ErrorForm(myException);
-                    ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
-                    ef.ShowDialog();
-                }
-                else
-                {
-                    startRestore.Enabled = false;
-                    chooseDirectoryButton.Enabled = false;
-                    backgroundFinished = 0;
-                    startTime  = DateTime.Now;
-                    SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-                    filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-                    startTime1 = DateTime.Now;
-                    startTime3 = DateTime.Now;
-                    startTime4 = DateTime.Now;
-                    startTime5 = DateTime.Now;
-                    progressBarLabel.Text = $"0% Complete";
-                    progressBar1.Value = 0;
-                    percentComplete1 = 0;
-                    percentComplete3 = 0;
-                    percentComplete4 = 0;
-                    percentComplete5 = 0;
-                    i = -1;
-                    Logger.Info("Starting Background Workers ...");
-                    backgroundWorkerRestore1.RunWorkerAsync();
-                    backgroundWorkerRestore2.RunWorkerAsync();
-                    backgroundWorkerRestore3.RunWorkerAsync();
-                    backgroundWorkerRestore4.RunWorkerAsync();
-                    backgroundWorkerPathCheck.CancelAsync();
-                }
+            progressBar1.Value = 0;
+            restoreDirectoryTextBox.Enabled = false;
+            recursiveBox.Enabled = false;
+            
+            if (!Directory.Exists(restoreDirectoryTextBox.Text)) //if directory doesn't exist, set to some bogus place with no backup files and show error form
+            {
+                restoreDirectoryTextBox.BackColor = Color.Red;
+                string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
+                Exception myException = new Exception(myMessage);
+                Logger.Error(myException);
+                ErrorForm ef = new ErrorForm(myException);
+                ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
+                ef.ShowDialog();
+            }
+            else
+            {
+                startRestore.Enabled = false;
+                chooseDirectoryButton.Enabled = false;
+                backgroundFinished = 0;
+                startTime  = DateTime.Now;
+                SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+                filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+                startTime1 = DateTime.Now;
+                startTime3 = DateTime.Now;
+                startTime4 = DateTime.Now;
+                startTime5 = DateTime.Now;
+                progressBarLabel.Text = $"0% Complete";
+                progressBar1.Value = 0;
+                percentComplete1 = 0;
+                percentComplete3 = 0;
+                percentComplete4 = 0;
+                percentComplete5 = 0;
+                i = -1;
+                Logger.Info("Starting Background Workers ...");
+                backgroundWorkerRestore1.RunWorkerAsync();
+                backgroundWorkerRestore2.RunWorkerAsync();
+                backgroundWorkerRestore3.RunWorkerAsync();
+                backgroundWorkerRestore4.RunWorkerAsync();
+                backgroundWorkerPathCheck.CancelAsync();
             }
 
         }
