@@ -169,20 +169,81 @@ namespace DatabaseBackupTool
         //Worker 2 is responsible for turning the path variable red if the path is incorrect in real time.
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
+            int i = 0;
             BackgroundWorker worker = sender as BackgroundWorker;
             while (!backgroundWorkerPathCheck.CancellationPending)
             {
+                i++;
                 System.Threading.Thread.Sleep(100); //change update rate of text box in milliseconds (cannot be zero)
-                worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
+                worker.ReportProgress(i); //raises the progressChanged Event which calls the function associated with that for this worker
             }
         }
 
+        /// <summary>
+        /// worst case scenario is this takes 4ms to run (on Jerrick's Laptop)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (Directory.Exists(restoreDirectoryTextBox.Text))
-                restoreDirectoryTextBox.BackColor = Color.White;
-            else
+            if (!Directory.Exists(restoreDirectoryTextBox.Text))
+            {
                 restoreDirectoryTextBox.BackColor = Color.Red;
+                return;
+            }
+            
+            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+            filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+            if (filesToRestore.Length <= 0)
+            {
+                restoreDirectoryTextBox.BackColor = Color.Red;
+                return;
+            }
+
+            if ((e.ProgressPercentage % 5) != 0)
+                return;
+
+            string databaseName = "deleteMe";
+            string path = $@"{restoreDirectoryTextBox.Text}\{databaseName}.BAK";
+            string restoreDatabase = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{path}' WITH REPLACE";
+            string destroyDatabase = $@"DROP DATABASE [{databaseName}]";
+            SQLConnector conn = null;
+            try
+            {
+                using (File.Create(path)) { }
+                conn = connectToSQL();
+
+                conn.Open();
+                var command = conn.CreateCommand(restoreDatabase);
+                command.CommandTimeout = 0;
+                conn.ReadResults(command);
+                conn.Close();
+
+                conn.Open();
+                command = conn.CreateCommand(destroyDatabase);
+                conn.ReadResults(command);
+                conn.Close();
+            }
+            catch (System.Data.SqlClient.SqlException ex)
+            {
+                if (ex.Message.Contains("Access is denied"))
+                {
+                    restoreDirectoryTextBox.BackColor = Color.Red;
+                    return;
+                }
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    File.Delete(path);
+                    conn.Dispose();
+                    conn = null;
+                }
+            }
+            
+            restoreDirectoryTextBox.BackColor = Color.White;
+
         }
 
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
