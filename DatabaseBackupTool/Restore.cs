@@ -179,71 +179,17 @@ namespace DatabaseBackupTool
             }
         }
 
-        /// <summary>
-        /// worst case scenario is this takes 4ms to run (on Jerrick's Laptop)
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (!Directory.Exists(restoreDirectoryTextBox.Text))
+            if (!Directory.Exists(restoreDirectoryTextBox.Text.Trim()))
             {
                 restoreDirectoryTextBox.BackColor = Color.Red;
                 return;
             }
-            
-            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-            filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-            if (filesToRestore.Length <= 0)
+            else
             {
-                restoreDirectoryTextBox.BackColor = Color.Red;
-                return;
+                restoreDirectoryTextBox.BackColor = Color.White;
             }
-
-            if ((e.ProgressPercentage % 5) != 0)
-                return;
-
-            string databaseName = "deleteMe";
-            string path = $@"{restoreDirectoryTextBox.Text}\{databaseName}.BAK";
-            string restoreDatabase = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{path}' WITH REPLACE";
-            string destroyDatabase = $@"DROP DATABASE [{databaseName}]";
-            SQLConnector conn = null;
-            try
-            {
-                using (File.Create(path)) { }
-                conn = connectToSQL();
-
-                conn.Open();
-                var command = conn.CreateCommand(restoreDatabase);
-                command.CommandTimeout = 0;
-                conn.ReadResults(command);
-                conn.Close();
-
-                conn.Open();
-                command = conn.CreateCommand(destroyDatabase);
-                conn.ReadResults(command);
-                conn.Close();
-            }
-            catch (System.Data.SqlClient.SqlException ex)
-            {
-                if (ex.Message.Contains("Access is denied"))
-                {
-                    restoreDirectoryTextBox.BackColor = Color.Red;
-                    return;
-                }
-            }
-            finally
-            {
-                if (conn != null)
-                {
-                    File.Delete(path);
-                    conn.Dispose();
-                    conn = null;
-                }
-            }
-            
-            restoreDirectoryTextBox.BackColor = Color.White;
-
         }
 
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
@@ -433,6 +379,61 @@ namespace DatabaseBackupTool
             }
             else
                 backgroundFinished++;
+        }
+
+        private bool ContainsBakFiles(String path)
+        {
+            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+            filesToRestore = Directory.GetFiles(path, "*.bak", recursive);
+            if (filesToRestore.Length <= 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool SqlServerHasAccess(String path)
+        {
+            string databaseName = "deleteMe";
+            path += $"{databaseName}.BAK";
+            string restoreDatabase = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{path}' WITH REPLACE";
+            string destroyDatabase = $@"DROP DATABASE [{databaseName}]";
+            SQLConnector conn = null;
+            try
+            {
+                using (File.Create(path)) { }
+                conn = connectToSQL();
+
+                conn.Open();
+                var command = conn.CreateCommand(restoreDatabase);
+                command.CommandTimeout = 0;
+                conn.ReadResults(command);
+                conn.Close();
+
+                conn.Open();
+                command = conn.CreateCommand(destroyDatabase);
+                conn.ReadResults(command);
+                conn.Close();
+            }
+            catch (System.Data.SqlClient.SqlException ex)
+            {
+                if (ex.Message.Contains("Access is denied"))
+                {
+                    return false;
+                }
+                else
+                    return true;
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    File.Delete(path);
+                    conn.Dispose();
+                }
+            }
+
+            return true;
         }
 
         private SQLConnector connectToSQL()
