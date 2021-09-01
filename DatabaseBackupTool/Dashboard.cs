@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Management.Smo;
+using System;
+using System.Data;
 using System.Net;
 using System.Windows.Forms;
 
@@ -10,11 +12,15 @@ namespace DatabaseBackupTool
         private static string xmlPath = "SqlConnectorData.xml";
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         public Dashboard()
-        {
-            GetExecutionDirectory();
+        { 
             InitializeComponent();
+            LoadSqlServerInstancesAsync.RunWorkerAsync();
+            GetExecutionDirectory();
             FormBorderStyle = FormBorderStyle.FixedSingle;
             LoadSqlConnectionXml();
+            ServerInstanceComboBox.Enabled = false;
+            ServerInstanceComboBox.Items.Add(SqlInfoData.Data_Source);
+            ServerInstanceComboBox.SelectedIndex = 0;
         }
 
         public void GetExecutionDirectory()
@@ -52,6 +58,41 @@ namespace DatabaseBackupTool
             LoadSqlConnectionXml();
             Restore restore = new Restore();
             restore.ShowDialog();
+        }
+
+        private void LoadSqlServerInstancesAsync_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            DataTable table = SmoApplication.EnumAvailableSqlServers(true);
+            LoadSqlServerInstancesAsync.ReportProgress(100, table);
+        }
+
+        private void LoadSqlServerInstancesAsync_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            DataTable table = (DataTable)e.UserState;
+            DataRow addDefault = table.NewRow();
+            string defaultInstance = ServerInstanceComboBox.SelectedItem.ToString();
+            ServerInstanceComboBox.ValueMember = "Name";
+            ServerInstanceComboBox.DataSource = table;
+
+            addDefault["Name"] = defaultInstance;
+            addDefault["Server"] = "(local)";
+            addDefault["Instance"] = "SQLEXPRESS";
+            addDefault["IsClustered"] = "false";
+            addDefault["Version"] = "11.0.6020.0";
+            addDefault["IsLocal"] = "true";
+            table.Rows.InsertAt(addDefault, 0);
+            ServerInstanceComboBox.SelectedIndex = 0;
+
+            ServerInstanceComboBox.Enabled = true;
+            Logger.Info("Loading complete!");
+        }
+
+        private void ServerInstanceComboBox_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            int i = ServerInstanceComboBox.SelectedIndex;
+            DataTable data = (DataTable)ServerInstanceComboBox.DataSource;
+            DataRow row = data.Rows[i];
+            SqlInfoData.Data_Source = row["Name"].ToString();
         }
     }
 }
