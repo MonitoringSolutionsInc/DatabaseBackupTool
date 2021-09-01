@@ -12,7 +12,6 @@ namespace DatabaseBackupTool
 {
     public partial class Restore : Form
     {
-        private bool keepGoing = true;
         string[] filesToRestore;
         public bool validLocation;
         private int percentComplete1 = 0;
@@ -235,7 +234,6 @@ namespace DatabaseBackupTool
             }
             // Clean up SQLConnector.
             conn.Dispose();
-            conn = null;
         }
 
         private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn, String workersName)
@@ -477,7 +475,6 @@ namespace DatabaseBackupTool
 
         private void Restore_FormClosing(object sender, FormClosingEventArgs e)
         {
-            keepGoing = false;
             backgroundWorkerPathCheck.CancelAsync();
         }
     }
