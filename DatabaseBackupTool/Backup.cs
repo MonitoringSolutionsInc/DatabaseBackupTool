@@ -211,38 +211,51 @@ namespace DatabaseBackupTool
 
         private void startBackUp_Click(object sender, EventArgs e)
         {
-            if (!backgroundWorker1.IsBusy)
+            String path = backupDirectoryTextBox.Text;
+            if (!HelperClass.SqlServerHasAccess(path))
             {
-                backupProgressBar.Value = 0;
-                startBackUp.Enabled = false;
-                RefreshDBs.Enabled = false;
-                MoveSelectRight.Enabled = false;
-                MoveSelectLeft.Enabled = false;
-                MoveAllLeft.Enabled = false;
-                MoveAllRight.Enabled = false;
-                backupDirectoryTextBox.Enabled = false;
-                filterTextBox.Enabled = false;
-                chooseDirectoryButton.Enabled = false;
-                try
-                {
-                    if (!Directory.Exists(backupDirectoryTextBox.Text)) //if directory does not exist
-                        Directory.CreateDirectory(backupDirectoryTextBox.Text);
-                }
-                catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
-                {
-                    //show error box
-                    string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
-                    Exception myException = new Exception(myMessage);
-                    ef = new ErrorForm(myException);
-                    ef.Show();
-                }
-                backgroundFinished = false;
-                startTime = DateTime.Now;
-                startTime1 = DateTime.Now;
-                startTime3 = DateTime.Now;
-                backgroundWorker1.RunWorkerAsync();
-                backgroundWorker3.RunWorkerAsync();
+                String myMessage = "SQL Server does not have access to this folder:\n" + path;
+                Exception myException = new Exception(myMessage);
+                Logger.Error(myException);
+                ErrorForm ef = new ErrorForm(myException);
+                ef.ShowDialog();
+                return;
             }
+
+            if (backgroundWorker1.IsBusy)
+                return;
+
+            backupProgressBar.Value = 0;
+            startBackUp.Enabled = false;
+            RefreshDBs.Enabled = false;
+            MoveSelectRight.Enabled = false;
+            MoveSelectLeft.Enabled = false;
+            MoveAllLeft.Enabled = false;
+            MoveAllRight.Enabled = false;
+            backupDirectoryTextBox.Enabled = false;
+            filterTextBox.Enabled = false;
+            chooseDirectoryButton.Enabled = false;
+            
+            try
+            {
+                if (!Directory.Exists(path)) //if directory does not exist
+                Directory.CreateDirectory(path);
+            }
+            catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+            {
+                //show error box
+                string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
+                Exception myException = new Exception(myMessage);
+                ef = new ErrorForm(myException);
+                ef.Show();
+                return;
+            }
+            backgroundFinished = false;
+            startTime = DateTime.Now;
+            startTime1 = DateTime.Now;
+            startTime3 = DateTime.Now;
+            backgroundWorker1.RunWorkerAsync();
+            backgroundWorker3.RunWorkerAsync();
         }
 
         private void chooseDirectoryButton_Click(object sender, EventArgs e)

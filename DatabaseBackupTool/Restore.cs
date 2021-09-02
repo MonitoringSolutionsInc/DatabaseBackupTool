@@ -62,8 +62,8 @@ namespace DatabaseBackupTool
             String path = restoreDirectoryTextBox.Text.Trim();
             
             exist = Directory.Exists(path);
-            sqlAccess = SqlServerHasAccess(path);
-            hasBakFiles = ContainsBakFiles(path);
+            sqlAccess = HelperClass.SqlServerHasAccess(path);
+            hasBakFiles = HelperClass.ContainsBakFiles(path, recursiveBox.Checked);
 
             if (!exist || !sqlAccess || !hasBakFiles)
             {
@@ -215,7 +215,21 @@ namespace DatabaseBackupTool
 
         private void BG_DoWork(BackgroundWorker worker, String name)
         {
-            SQLConnector conn = connectToSQL(); //create connection outside of loop for more reliable operation
+            SQLConnector conn;
+            try
+            {
+                conn = HelperClass.connectToSQL(); //create connection outside of loop for more reliable operation
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
+                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
+                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
+                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
+                    $"Password: {Dashboard.SqlInfoData.Password}");
+                return;
+            }
+
             
             while (i < filesToRestore.Length)
             {
@@ -393,84 +407,6 @@ namespace DatabaseBackupTool
             }
             else
                 backgroundFinished++;
-        }
-
-        private bool ContainsBakFiles(String path)
-        {
-            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-            filesToRestore = Directory.GetFiles(path, "*.bak", recursive);
-            if (filesToRestore.Length <= 0)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private bool SqlServerHasAccess(String path)
-        {
-            string databaseName = "deleteMe";
-            path += $"{databaseName}.BAK";
-            string restoreDatabase = $@"RESTORE DATABASE [{databaseName}] FROM DISK='{path}' WITH REPLACE";
-            string destroyDatabase = $@"DROP DATABASE [{databaseName}]";
-            SQLConnector conn = null;
-            try
-            {
-                using (File.Create(path)) { }
-                conn = connectToSQL();
-
-                conn.Open();
-                var command = conn.CreateCommand(restoreDatabase);
-                command.CommandTimeout = 0;
-                conn.ReadResults(command);
-                conn.Close();
-
-                conn.Open();
-                command = conn.CreateCommand(destroyDatabase);
-                conn.ReadResults(command);
-                conn.Close();
-            }
-            catch (System.Data.SqlClient.SqlException ex)
-            {
-                if (ex.Message.Contains("Access is denied"))
-                {
-                    return false;
-                }
-                else
-                    return true;
-            }
-            finally
-            {
-                if (conn != null)
-                {
-                    File.Delete(path);
-                    conn.Dispose();
-                }
-            }
-
-            return true;
-        }
-
-        private SQLConnector connectToSQL()
-        {             
-            SQLConnector conn = null;
-            try
-            {
-                conn = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
-                conn.InitializeConnection();
-            }
-            catch (Exception ex)
-            {
-                if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
-                {
-                    conn.Close();
-                }
-                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
-                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
-                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
-                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
-                    $"Password: {Dashboard.SqlInfoData.Password}");
-            }
-            return conn;
         }
 
         private void Restore_FormClosing(object sender, FormClosingEventArgs e)
