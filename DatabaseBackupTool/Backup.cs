@@ -212,7 +212,7 @@ namespace DatabaseBackupTool
         private void startBackUp_Click(object sender, EventArgs e)
         {
             String path = backupDirectoryTextBox.Text;
-            if (!HelperClass.SqlServerHasAccess(path))
+            if (!SqlServerHasWriteAccess())
             {
                 String myMessage = "SQL Server does not have access to this folder:\n" + path;
                 Exception myException = new Exception(myMessage);
@@ -258,6 +258,42 @@ namespace DatabaseBackupTool
             backgroundWorker3.RunWorkerAsync();
         }
 
+        private bool SqlServerHasWriteAccess()
+        {
+            try
+            {
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                String lastSys2 = backupList.Items[backupList.Items.Count - 1].ToString();
+                String tempDatabase = "SqlWriteAccess";
+                String file = $"{backupDirectoryTextBox.Text}\\{tempDatabase}.BAK";
+                string sql = $"BACKUP DATABASE \"{lastSys2}\" TO DISK = \'{file}\' WITH INIT";
+                var command = connector.CreateCommand(sql);
+                command.CommandTimeout = 0;
+                var reader = connector.ReadResults(command);
+
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                if (File.Exists(file))
+                {
+                    File.Delete(file);
+                    return true;
+                }
+                else
+                    return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void chooseDirectoryButton_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -289,7 +325,6 @@ namespace DatabaseBackupTool
                     try
                     {
                         string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
-                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
                         var command = connector.CreateCommand(sql);
                         command.CommandTimeout = 0;
                         var reader = connector.ReadResults(command);
@@ -303,16 +338,9 @@ namespace DatabaseBackupTool
                     {
                         connector.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        // ef = new ErrorForm(ex);
-                        // ef.Show();
                         break;
                     }
                 }
-                //if (backupProgressBar.Value == backupProgressBar.Maximum)
-                //{
-                //    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
-                //}
                 int percentComplete = (int)(i / (float)(backupList.Items.Count) * 100);
                 worker.ReportProgress(percentComplete);
             }
@@ -380,9 +408,6 @@ namespace DatabaseBackupTool
                     {
                         connector2.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        //ef = new ErrorForm(ex);
-                        //ef.Show();
                         break;
                     }
                 }
