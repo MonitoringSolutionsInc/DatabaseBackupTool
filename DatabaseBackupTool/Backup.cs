@@ -211,37 +211,86 @@ namespace DatabaseBackupTool
 
         private void startBackUp_Click(object sender, EventArgs e)
         {
-            if (!backgroundWorker1.IsBusy)
+            String path = backupDirectoryTextBox.Text;
+            if (!SqlServerHasWriteAccess())
             {
-                backupProgressBar.Value = 0;
-                startBackUp.Enabled = false;
-                RefreshDBs.Enabled = false;
-                MoveSelectRight.Enabled = false;
-                MoveSelectLeft.Enabled = false;
-                MoveAllLeft.Enabled = false;
-                MoveAllRight.Enabled = false;
-                backupDirectoryTextBox.Enabled = false;
-                filterTextBox.Enabled = false;
-                chooseDirectoryButton.Enabled = false;
-                try
+                String myMessage = "SQL Server does not have access to this folder:\n" + path;
+                Exception myException = new Exception(myMessage);
+                Logger.Error(myException);
+                ErrorForm ef = new ErrorForm(myException);
+                ef.ShowDialog();
+                return;
+            }
+
+            if (backgroundWorker1.IsBusy)
+                return;
+
+            backupProgressBar.Value = 0;
+            startBackUp.Enabled = false;
+            RefreshDBs.Enabled = false;
+            MoveSelectRight.Enabled = false;
+            MoveSelectLeft.Enabled = false;
+            MoveAllLeft.Enabled = false;
+            MoveAllRight.Enabled = false;
+            backupDirectoryTextBox.Enabled = false;
+            filterTextBox.Enabled = false;
+            chooseDirectoryButton.Enabled = false;
+            
+            try
+            {
+                if (!Directory.Exists(path)) //if directory does not exist
+                Directory.CreateDirectory(path);
+            }
+            catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+            {
+                //show error box
+                string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
+                Exception myException = new Exception(myMessage);
+                ef = new ErrorForm(myException);
+                ef.Show();
+                return;
+            }
+            backgroundFinished = false;
+            startTime = DateTime.Now;
+            startTime1 = DateTime.Now;
+            startTime3 = DateTime.Now;
+            backgroundWorker1.RunWorkerAsync();
+            backgroundWorker3.RunWorkerAsync();
+        }
+
+        private bool SqlServerHasWriteAccess()
+        {
+            try
+            {
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                String lastSys2 = backupList.Items[backupList.Items.Count - 1].ToString();
+                String tempDatabase = "SqlWriteAccess";
+                String file = $"{backupDirectoryTextBox.Text}\\{tempDatabase}.BAK";
+                string sql = $"BACKUP DATABASE \"{lastSys2}\" TO DISK = \'{file}\' WITH INIT";
+                var command = connector.CreateCommand(sql);
+                command.CommandTimeout = 0;
+                var reader = connector.ReadResults(command);
+
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                if (File.Exists(file))
                 {
-                    if (!Directory.Exists(backupDirectoryTextBox.Text)) //if directory does not exist
-                        Directory.CreateDirectory(backupDirectoryTextBox.Text);
+                    File.Delete(file);
+                    return true;
                 }
-                catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
-                {
-                    //show error box
-                    string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
-                    Exception myException = new Exception(myMessage);
-                    ef = new ErrorForm(myException);
-                    ef.Show();
-                }
-                backgroundFinished = false;
-                startTime = DateTime.Now;
-                startTime1 = DateTime.Now;
-                startTime3 = DateTime.Now;
-                backgroundWorker1.RunWorkerAsync();
-                backgroundWorker3.RunWorkerAsync();
+                else
+                    return false;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -276,7 +325,6 @@ namespace DatabaseBackupTool
                     try
                     {
                         string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
-                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
                         var command = connector.CreateCommand(sql);
                         command.CommandTimeout = 0;
                         var reader = connector.ReadResults(command);
@@ -290,16 +338,9 @@ namespace DatabaseBackupTool
                     {
                         connector.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        // ef = new ErrorForm(ex);
-                        // ef.Show();
                         break;
                     }
                 }
-                //if (backupProgressBar.Value == backupProgressBar.Maximum)
-                //{
-                //    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
-                //}
                 int percentComplete = (int)(i / (float)(backupList.Items.Count) * 100);
                 worker.ReportProgress(percentComplete);
             }
@@ -367,9 +408,6 @@ namespace DatabaseBackupTool
                     {
                         connector2.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        //ef = new ErrorForm(ex);
-                        //ef.Show();
                         break;
                     }
                 }

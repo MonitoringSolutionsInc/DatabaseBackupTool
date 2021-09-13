@@ -23,7 +23,7 @@ namespace DatabaseBackupTool
         public static SqlConnectionInfoData LoadSqlConnectionData(string xmlPath)
         {
             SqlConnectionInfoData sqlInfo = new SqlConnectionInfoData();
-            XElement doc = null;
+            XElement doc;
             try
             {
                 doc = XElement.Load(xmlPath);
@@ -45,7 +45,7 @@ namespace DatabaseBackupTool
                 }
                 Dashboard.LoadSqlConnectionXml();
             }
-            catch (Exception e)
+            catch
             {
                 Console.WriteLine("An error occured while attempting to load Connection String from XML");
                 sqlInfo.Data_Source = @"(local)\SQLEXPRESS";
