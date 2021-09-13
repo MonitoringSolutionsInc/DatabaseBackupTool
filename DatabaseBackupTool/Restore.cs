@@ -62,7 +62,7 @@ namespace DatabaseBackupTool
             String path = restoreDirectoryTextBox.Text.Trim();
             
             exist = Directory.Exists(path);
-            sqlAccess = HelperClass.SqlServerHasAccess(path);
+            sqlAccess = HelperClass.SqlServerHasReadAccess(path);
             hasBakFiles = HelperClass.ContainsBakFiles(path, recursiveBox.Checked);
 
             if (!exist || !sqlAccess || !hasBakFiles)

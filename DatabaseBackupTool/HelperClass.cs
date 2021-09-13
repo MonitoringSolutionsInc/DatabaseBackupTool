@@ -22,7 +22,7 @@ namespace DatabaseBackupTool
             return true;
         }
 
-        public static bool SqlServerHasAccess(String path)
+        public static bool SqlServerHasReadAccess(String path)
         {
             string databaseName = "deleteMe";
             path += $"{databaseName}.BAK";
