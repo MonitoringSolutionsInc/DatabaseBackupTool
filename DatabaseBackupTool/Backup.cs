@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Taskbar;
 
 namespace DatabaseBackupTool
 {
@@ -21,6 +22,7 @@ namespace DatabaseBackupTool
         DateTime startTime1;
         DateTime startTime3;
         private bool backgroundFinished = false;
+        TaskbarManager taskbarInstance = TaskbarManager.Instance;
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -67,6 +69,9 @@ namespace DatabaseBackupTool
             filterTextBox.Enter += new EventHandler(filterTextBox_Enter);
             filterTextBox.Leave += new EventHandler(filterTextBox_Leave);
             filterTextBox_SetText();
+
+            //status bar as progress bar
+            taskbarInstance.SetProgressState(TaskbarProgressBarState.Normal, this.Handle);
         }
 
         private void filterTextBox_Enter(object sender, EventArgs e)
@@ -213,37 +218,95 @@ namespace DatabaseBackupTool
 
         private void startBackUp_Click(object sender, EventArgs e)
         {
-            if (!backgroundWorker1.IsBusy)
+            String path = backupDirectoryTextBox.Text;
+            bool createdPath = false;
+
+            try
             {
-                backupProgressBar.Value = 0;
-                startBackUp.Enabled = false;
-                RefreshDBs.Enabled = false;
-                MoveSelectRight.Enabled = false;
-                MoveSelectLeft.Enabled = false;
-                MoveAllLeft.Enabled = false;
-                MoveAllRight.Enabled = false;
-                backupDirectoryTextBox.Enabled = false;
-                filterTextBox.Enabled = false;
-                chooseDirectoryButton.Enabled = false;
-                try
+                if (!Directory.Exists(path)) //if directory does not exist
                 {
-                    if (!Directory.Exists(backupDirectoryTextBox.Text)) //if directory does not exist
-                        Directory.CreateDirectory(backupDirectoryTextBox.Text);
+                    Directory.CreateDirectory(path);
+                    createdPath = true;
                 }
-                catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+            }
+            catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+            {
+                //show error box
+                string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
+                Exception myException = new Exception(myMessage);
+                ef = new ErrorForm(myException);
+                ef.Show();
+                return;
+            }
+
+            if (!SqlServerHasWriteAccess())
+            {
+                String myMessage = "SQL Server does not have access to this folder:\n" + path;
+                Exception myException = new Exception(myMessage);
+                Logger.Error(myException);
+                if (createdPath)
+                    Directory.Delete(path);
+                ErrorForm ef = new ErrorForm(myException);
+                ef.ShowDialog();
+                return;
+            }
+
+            if (backgroundWorker1.IsBusy)
+                return;
+
+            backupProgressBar.Value = 0;
+            taskbarInstance.SetProgressValue(0, 100);
+            startBackUp.Enabled = false;
+            RefreshDBs.Enabled = false;
+            MoveSelectRight.Enabled = false;
+            MoveSelectLeft.Enabled = false;
+            MoveAllLeft.Enabled = false;
+            MoveAllRight.Enabled = false;
+            backupDirectoryTextBox.Enabled = false;
+            filterTextBox.Enabled = false;
+            chooseDirectoryButton.Enabled = false;
+            
+            backgroundFinished = false;
+            startTime = DateTime.Now;
+            startTime1 = DateTime.Now;
+            startTime3 = DateTime.Now;
+            backgroundWorker1.RunWorkerAsync();
+            backgroundWorker3.RunWorkerAsync();
+        }
+
+        private bool SqlServerHasWriteAccess()
+        {
+            try
+            {
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                String lastSys2 = backupList.Items[backupList.Items.Count - 1].ToString();
+                String tempDatabase = "SqlWriteAccess";
+                String file = $"{backupDirectoryTextBox.Text}\\{tempDatabase}.BAK";
+                string sql = $"BACKUP DATABASE \"{lastSys2}\" TO DISK = \'{file}\' WITH INIT";
+                var command = connector.CreateCommand(sql);
+                command.CommandTimeout = 0;
+                var reader = connector.ReadResults(command);
+
+                if (connector.GetConnectionState() == ConnectionState.Closed)
+                    connector.Open();
+                else
+                    connector.Close();
+
+                if (File.Exists(file))
                 {
-                    //show error box
-                    string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
-                    Exception myException = new Exception(myMessage);
-                    ef = new ErrorForm(myException);
-                    ef.Show();
+                    File.Delete(file);
+                    return true;
                 }
-                backgroundFinished = false;
-                startTime = DateTime.Now;
-                startTime1 = DateTime.Now;
-                startTime3 = DateTime.Now;
-                backgroundWorker1.RunWorkerAsync();
-                backgroundWorker3.RunWorkerAsync();
+                else
+                    return false;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -278,7 +341,6 @@ namespace DatabaseBackupTool
                     try
                     {
                         string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
-                        // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
                         var command = connector.CreateCommand(sql);
                         command.CommandTimeout = 0;
                         var reader = connector.ReadResults(command);
@@ -292,16 +354,9 @@ namespace DatabaseBackupTool
                     {
                         connector.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        // ef = new ErrorForm(ex);
-                        // ef.Show();
                         break;
                     }
                 }
-                //if (backupProgressBar.Value == backupProgressBar.Maximum)
-                //{
-                //    MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
-                //}
                 int percentComplete = (int)(i / (float)(backupList.Items.Count) * 100);
                 worker.ReportProgress(percentComplete);
             }
@@ -315,6 +370,7 @@ namespace DatabaseBackupTool
             percentComplete1 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
+            taskbarInstance.SetProgressValue(done, 100);
             Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
@@ -334,6 +390,7 @@ namespace DatabaseBackupTool
                 backupDirectoryTextBox.Enabled = true;
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
@@ -369,9 +426,6 @@ namespace DatabaseBackupTool
                     {
                         connector2.Close();
                         Logger.Error(ex, $"An Error Occurred While Attempting to Backup Database: {backupList.Items[i]}");
-                        // This is extremely annoying and unreliable when errors occur on multiple databases.
-                        //ef = new ErrorForm(ex);
-                        //ef.Show();
                         break;
                     }
                 }
@@ -388,6 +442,7 @@ namespace DatabaseBackupTool
             percentComplete3 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
+            taskbarInstance.SetProgressValue(done, 100);
             Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
@@ -407,6 +462,7 @@ namespace DatabaseBackupTool
                 backupDirectoryTextBox.Enabled = true;
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");

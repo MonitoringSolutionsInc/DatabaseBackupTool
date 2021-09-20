@@ -7,12 +7,13 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
+using Microsoft.WindowsAPICodePack.Taskbar;
 
 namespace DatabaseBackupTool
 {
     public partial class Restore : Form
     {
-        private bool keepGoing = true;
         string[] filesToRestore;
         public bool validLocation;
         private int percentComplete1 = 0;
@@ -27,6 +28,7 @@ namespace DatabaseBackupTool
         DateTime startTime3;
         DateTime startTime4;
         DateTime startTime5;
+        TaskbarManager taskbarInstance = TaskbarManager.Instance;
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -40,6 +42,7 @@ namespace DatabaseBackupTool
             backgroundWorkerRestore2.WorkerReportsProgress = true;
             backgroundWorkerRestore3.WorkerReportsProgress = true;
             backgroundWorkerRestore4.WorkerReportsProgress = true;
+            taskbarInstance.SetProgressState(TaskbarProgressBarState.Normal, this.Handle);
             backgroundWorkerPathCheck.RunWorkerAsync();
         }
 
@@ -52,50 +55,67 @@ namespace DatabaseBackupTool
 
         private void startRestore_Click(object sender, EventArgs e)
         {
-            if (!backgroundWorkerRestore1.IsBusy)
-            {
-                progressBar1.Value = 0;
-                restoreDirectoryTextBox.Enabled = false;
-                recursiveBox.Enabled = false;
+            if (backgroundWorkerRestore1.IsBusy)
+                return;
 
-                if (!Directory.Exists(restoreDirectoryTextBox.Text)) //if directory doesn't exist, set to some bogus place with no backup files and show error form
-                {
-                    restoreDirectoryTextBox.BackColor = Color.Red;
-                    string myMessage = "The following directory could not be opened:\n" + restoreDirectoryTextBox.Text;
-                    Exception myException = new Exception(myMessage);
-                    Logger.Error(myException);
-                    ErrorForm ef = new ErrorForm(myException);
-                    ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
-                    ef.ShowDialog();
-                }
-                else
-                {
-                    startRestore.Enabled = false;
-                    chooseDirectoryButton.Enabled = false;
-                    backgroundFinished = 0;
-                    startTime = DateTime.Now;
-                    SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-                    filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
-                    startTime1 = DateTime.Now;
-                    startTime3 = DateTime.Now;
-                    startTime4 = DateTime.Now;
-                    startTime5 = DateTime.Now;
-                    progressBarLabel.Text = $"0% Complete";
-                    progressBar1.Value = 0;
-                    percentComplete1 = 0;
-                    percentComplete3 = 0;
-                    percentComplete4 = 0;
-                    percentComplete5 = 0;
-                    i = -1;
-                    Logger.Info("Starting Background Workers ...");
-                    backgroundWorkerRestore1.RunWorkerAsync();
-                    backgroundWorkerRestore2.RunWorkerAsync();
-                    backgroundWorkerRestore3.RunWorkerAsync();
-                    backgroundWorkerRestore4.RunWorkerAsync();
-                    backgroundWorkerPathCheck.CancelAsync();
-                }
+            progressBar1.Value = 0;
+            taskbarInstance.SetProgressValue(0, 100);
+            restoreDirectoryTextBox.Enabled = false;
+            recursiveBox.Enabled = false;
+
+            bool exist, sqlAccess, hasBakFiles;
+            String path = restoreDirectoryTextBox.Text.Trim();
+            
+            exist = Directory.Exists(path);
+            sqlAccess = HelperClass.SqlServerHasReadAccess(path);
+            hasBakFiles = HelperClass.ContainsBakFiles(path, recursiveBox.Checked);
+
+            if (!exist || !sqlAccess || !hasBakFiles)
+            {
+                String myMessage = "";
+
+                if (!exist)
+                    myMessage = "The following directory could not be opened:\n" + path;
+                else if (!sqlAccess)
+                    myMessage = "SQL Server does not have access to this folder:\n" + path;
+                else if (!hasBakFiles)
+                    myMessage = "No files of type .BAK were found at this directory:\n" + path;
+
+                Exception myException = new Exception(myMessage);
+                Logger.Error(myException);
+                ErrorForm ef = new ErrorForm(myException);
+                ef.FormClosed += new FormClosedEventHandler(errorBoxClosed);
+                ef.ShowDialog();
+
+                restoreDirectoryTextBox.Enabled = true;
+                recursiveBox.Enabled = true;
+                return;
             }
 
+
+            startRestore.Enabled = false;
+            chooseDirectoryButton.Enabled = false;
+            backgroundFinished = 0;
+            startTime  = DateTime.Now;
+            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
+            filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+            startTime1 = DateTime.Now;
+            startTime3 = DateTime.Now;
+            startTime4 = DateTime.Now;
+            startTime5 = DateTime.Now;
+            progressBarLabel.Text = $"0% Complete";
+            progressBar1.Value = 0;
+            percentComplete1 = 0;
+            percentComplete3 = 0;
+            percentComplete4 = 0;
+            percentComplete5 = 0;
+            i = -1;
+            Logger.Info("Starting Background Workers ...");
+            backgroundWorkerRestore1.RunWorkerAsync();
+            backgroundWorkerRestore2.RunWorkerAsync();
+            backgroundWorkerRestore3.RunWorkerAsync();
+            backgroundWorkerRestore4.RunWorkerAsync();
+            backgroundWorkerPathCheck.CancelAsync();
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -169,20 +189,27 @@ namespace DatabaseBackupTool
         //Worker 2 is responsible for turning the path variable red if the path is incorrect in real time.
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
+            int i = 0;
             BackgroundWorker worker = sender as BackgroundWorker;
             while (!backgroundWorkerPathCheck.CancellationPending)
             {
+                i++;
                 System.Threading.Thread.Sleep(100); //change update rate of text box in milliseconds (cannot be zero)
-                worker.ReportProgress(85); //raises the progressChanged Event which calls the function associated with that for this worker
+                worker.ReportProgress(i); //raises the progressChanged Event which calls the function associated with that for this worker
             }
         }
 
         private void backgroundWorker2_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (Directory.Exists(restoreDirectoryTextBox.Text))
-                restoreDirectoryTextBox.BackColor = Color.White;
-            else
+            if (!Directory.Exists(restoreDirectoryTextBox.Text.Trim()))
+            {
                 restoreDirectoryTextBox.BackColor = Color.Red;
+                return;
+            }
+            else
+            {
+                restoreDirectoryTextBox.BackColor = Color.White;
+            }
         }
 
         private void errorBoxClosed(object sender, FormClosedEventArgs e)
@@ -193,7 +220,21 @@ namespace DatabaseBackupTool
 
         private void BG_DoWork(BackgroundWorker worker, String name)
         {
-            SQLConnector conn = connectToSQL(); //create connection outside of loop for more reliable operation
+            SQLConnector conn;
+            try
+            {
+                conn = HelperClass.connectToSQL(); //create connection outside of loop for more reliable operation
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
+                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
+                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
+                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
+                    $"Password: {Dashboard.SqlInfoData.Password}");
+                return;
+            }
+
 
             while (i < filesToRestore.Length)
             {
@@ -212,7 +253,6 @@ namespace DatabaseBackupTool
             }
             // Clean up SQLConnector.
             conn.Dispose();
-            conn = null;
         }
 
         private void restoreDatabase(int i, string[] filesToRestore, SQLConnector conn, String workersName)
@@ -353,6 +393,7 @@ namespace DatabaseBackupTool
             Logger.Info($"{work}% {who} restored a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBar1.Value = work;
             progressBarLabel.Text = $"{work}% Complete";
+            taskbarInstance.SetProgressValue(work, 100);
         }
 
         private void completed()
@@ -367,6 +408,7 @@ namespace DatabaseBackupTool
                 Console.WriteLine($"completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 backgroundWorkerPathCheck.RunWorkerAsync();
             }
@@ -374,32 +416,8 @@ namespace DatabaseBackupTool
                 backgroundFinished++;
         }
 
-        private SQLConnector connectToSQL()
-        {
-            SQLConnector conn = null;
-            try
-            {
-                conn = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
-                conn.InitializeConnection();
-            }
-            catch (Exception ex)
-            {
-                if (conn != null && conn.GetConnectionState() == ConnectionState.Open)
-                {
-                    conn.Close();
-                }
-                Logger.Error(ex, $"An error occurred while attempting to estbalish SQL Connection. " +
-                    $"Data Source: {Dashboard.SqlInfoData.Data_Source}, " +
-                    $"Initial Catalog: {Dashboard.SqlInfoData.Initial_Catalog}, " +
-                    $"User ID: {Dashboard.SqlInfoData.User_Id}, " +
-                    $"Password: {Dashboard.SqlInfoData.Password}");
-            }
-            return conn;
-        }
-
         private void Restore_FormClosing(object sender, FormClosingEventArgs e)
         {
-            keepGoing = false;
             backgroundWorkerPathCheck.CancelAsync();
         }
     }
