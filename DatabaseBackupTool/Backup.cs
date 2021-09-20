@@ -212,11 +212,33 @@ namespace DatabaseBackupTool
         private void startBackUp_Click(object sender, EventArgs e)
         {
             String path = backupDirectoryTextBox.Text;
+            bool createdPath = false;
+
+            try
+            {
+                if (!Directory.Exists(path)) //if directory does not exist
+                {
+                    Directory.CreateDirectory(path);
+                    createdPath = true;
+                }
+            }
+            catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
+            {
+                //show error box
+                string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
+                Exception myException = new Exception(myMessage);
+                ef = new ErrorForm(myException);
+                ef.Show();
+                return;
+            }
+
             if (!SqlServerHasWriteAccess())
             {
                 String myMessage = "SQL Server does not have access to this folder:\n" + path;
                 Exception myException = new Exception(myMessage);
                 Logger.Error(myException);
+                if (createdPath)
+                    Directory.Delete(path);
                 ErrorForm ef = new ErrorForm(myException);
                 ef.ShowDialog();
                 return;
@@ -236,20 +258,6 @@ namespace DatabaseBackupTool
             filterTextBox.Enabled = false;
             chooseDirectoryButton.Enabled = false;
             
-            try
-            {
-                if (!Directory.Exists(path)) //if directory does not exist
-                Directory.CreateDirectory(path);
-            }
-            catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
-            {
-                //show error box
-                string myMessage = ex.Message + "\nThe folowing directory could not be created:\n" + backupDirectoryTextBox.Text;
-                Exception myException = new Exception(myMessage);
-                ef = new ErrorForm(myException);
-                ef.Show();
-                return;
-            }
             backgroundFinished = false;
             startTime = DateTime.Now;
             startTime1 = DateTime.Now;
