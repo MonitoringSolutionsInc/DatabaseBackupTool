@@ -1,7 +1,5 @@
-﻿using Microsoft.SqlServer.Management.Smo;
-using System;
+﻿using System;
 using System.Data;
-using System.Net;
 using System.Windows.Forms;
 
 namespace DatabaseBackupTool
@@ -13,7 +11,7 @@ namespace DatabaseBackupTool
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         System.Data.Sql.SqlDataSourceEnumerator instance = System.Data.Sql.SqlDataSourceEnumerator.Instance;
         public Dashboard()
-        { 
+        {
             InitializeComponent();
             LoadSqlServerInstancesAsync.RunWorkerAsync();
             GetExecutionDirectory();
@@ -28,10 +26,10 @@ namespace DatabaseBackupTool
         {
             //gets the location the exe and stores it in string.
             string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-            
+
             //remove "file:\" from beginning
             xmlPath = str.Substring(6);
-            
+
             //add XML file
             xmlPath += "\\SqlConnectorData.xml";
         }
@@ -41,7 +39,8 @@ namespace DatabaseBackupTool
             {
                 SqlInfoData = SqlConnectorInfo.LoadSqlConnectionData(xmlPath);
                 Logger.Info($"Successfully loaded SqlConnection information from XML Path: {xmlPath}");
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Logger.Error(e, $"An error has occurred while attempting to load SqlConnection information from XML Path: {xmlPath}");
                 throw;
