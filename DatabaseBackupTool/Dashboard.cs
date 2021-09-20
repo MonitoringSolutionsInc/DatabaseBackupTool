@@ -11,6 +11,7 @@ namespace DatabaseBackupTool
         public static SqlConnectorInfo.SqlConnectionInfoData SqlInfoData; // Globally accessible instance of the XML loaded SQL Connection Info.
         private static string xmlPath = "SqlConnectorData.xml";
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        System.Data.Sql.SqlDataSourceEnumerator instance = System.Data.Sql.SqlDataSourceEnumerator.Instance;
         public Dashboard()
         { 
             InitializeComponent();
@@ -62,27 +63,16 @@ namespace DatabaseBackupTool
 
         private void LoadSqlServerInstancesAsync_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
-            DataTable table = SmoApplication.EnumAvailableSqlServers(true);
+            DataTable table = instance.GetDataSources();
             LoadSqlServerInstancesAsync.ReportProgress(100, table);
         }
 
         private void LoadSqlServerInstancesAsync_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
             DataTable table = (DataTable)e.UserState;
-            DataRow addDefault = table.NewRow();
-            string defaultInstance = ServerInstanceComboBox.SelectedItem.ToString();
-            ServerInstanceComboBox.ValueMember = "Name";
+            ServerInstanceComboBox.ValueMember = "InstanceName";
             ServerInstanceComboBox.DataSource = table;
-
-            addDefault["Name"] = defaultInstance;
-            addDefault["Server"] = "(local)";
-            addDefault["Instance"] = "SQLEXPRESS";
-            addDefault["IsClustered"] = "false";
-            addDefault["Version"] = "11.0.6020.0";
-            addDefault["IsLocal"] = "true";
-            table.Rows.InsertAt(addDefault, 0);
             ServerInstanceComboBox.SelectedIndex = 0;
-
             ServerInstanceComboBox.Enabled = true;
             Logger.Info("Loading complete!");
         }
@@ -92,7 +82,7 @@ namespace DatabaseBackupTool
             int i = ServerInstanceComboBox.SelectedIndex;
             DataTable data = (DataTable)ServerInstanceComboBox.DataSource;
             DataRow row = data.Rows[i];
-            SqlInfoData.Data_Source = row["Name"].ToString();
+            SqlInfoData.Data_Source = $"{row["ServerName"]}\\{row["InstanceName"]}";
         }
     }
 }
