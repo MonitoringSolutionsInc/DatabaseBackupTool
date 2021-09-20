@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Taskbar;
 
 namespace DatabaseBackupTool
 {
@@ -21,6 +22,7 @@ namespace DatabaseBackupTool
         DateTime startTime1;
         DateTime startTime3;
         private bool backgroundFinished = false;
+        TaskbarManager taskbarInstance = TaskbarManager.Instance;
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -65,6 +67,9 @@ namespace DatabaseBackupTool
             filterTextBox.Enter += new EventHandler(filterTextBox_Enter);
             filterTextBox.Leave += new EventHandler(filterTextBox_Leave);
             filterTextBox_SetText();
+
+            //status bar as progress bar
+            taskbarInstance.SetProgressState(TaskbarProgressBarState.Normal, this.Handle);
         }
 
         private void filterTextBox_Enter(object sender, EventArgs e)
@@ -248,6 +253,7 @@ namespace DatabaseBackupTool
                 return;
 
             backupProgressBar.Value = 0;
+            taskbarInstance.SetProgressValue(0, 100);
             startBackUp.Enabled = false;
             RefreshDBs.Enabled = false;
             MoveSelectRight.Enabled = false;
@@ -362,6 +368,7 @@ namespace DatabaseBackupTool
             percentComplete1 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
+            taskbarInstance.SetProgressValue(done, 100);
             Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
@@ -381,6 +388,7 @@ namespace DatabaseBackupTool
                 backupDirectoryTextBox.Enabled = true;
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
@@ -432,6 +440,7 @@ namespace DatabaseBackupTool
             percentComplete3 = e.ProgressPercentage;
             int done = (percentComplete1 + percentComplete3) / 2;
             backupProgressBar.Value = done;
+            taskbarInstance.SetProgressValue(done, 100);
             Console.WriteLine($"{done}% backed up a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBarLabel.Text = $"{done}% Complete";
         }
@@ -451,6 +460,7 @@ namespace DatabaseBackupTool
                 backupDirectoryTextBox.Enabled = true;
                 filterTextBox.Enabled = true;
                 backupProgressBar.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 Console.WriteLine($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
