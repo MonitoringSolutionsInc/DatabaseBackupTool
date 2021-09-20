@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using Microsoft.WindowsAPICodePack.Taskbar;
 
 namespace DatabaseBackupTool
 {
@@ -26,6 +27,7 @@ namespace DatabaseBackupTool
         DateTime startTime3;
         DateTime startTime4;
         DateTime startTime5;
+        TaskbarManager taskbarInstance = TaskbarManager.Instance;
 
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -39,6 +41,7 @@ namespace DatabaseBackupTool
             backgroundWorkerRestore2.WorkerReportsProgress = true;
             backgroundWorkerRestore3.WorkerReportsProgress = true;
             backgroundWorkerRestore4.WorkerReportsProgress = true;
+            taskbarInstance.SetProgressState(TaskbarProgressBarState.Normal, this.Handle);
             backgroundWorkerPathCheck.RunWorkerAsync();
         }
 
@@ -55,6 +58,7 @@ namespace DatabaseBackupTool
                 return;
 
             progressBar1.Value = 0;
+            taskbarInstance.SetProgressValue(0, 100);
             restoreDirectoryTextBox.Enabled = false;
             recursiveBox.Enabled = false;
 
@@ -388,6 +392,7 @@ namespace DatabaseBackupTool
             Logger.Info($"{work}% {who} restored a file in {time.Seconds}.{time.Milliseconds} seconds");
             progressBar1.Value = work;
             progressBarLabel.Text = $"{work}% Complete";
+            taskbarInstance.SetProgressValue(work, 100);
         }
 
         private void completed()
@@ -402,6 +407,7 @@ namespace DatabaseBackupTool
                 Console.WriteLine($"completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 Logger.Info($"Completed restore in {time.Minutes} minute(s) and {time.Seconds}.{time.Milliseconds} seconds");
                 progressBar1.Value = 100;
+                taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 backgroundWorkerPathCheck.RunWorkerAsync();
             }
