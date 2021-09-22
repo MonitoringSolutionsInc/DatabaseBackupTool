@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data;
+using System.ServiceProcess;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace DatabaseBackupTool
@@ -62,6 +64,10 @@ namespace DatabaseBackupTool
 
         private void LoadSqlServerInstancesAsync_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
+            ServiceController oController = new ServiceController("SQL Server Browser");
+            if (oController.Status.Equals(ServiceControllerStatus.Stopped) || oController.Status.Equals(ServiceControllerStatus.Paused))
+                oController.Start();
+            Thread.Sleep(500);
             DataTable table = instance.GetDataSources();
             LoadSqlServerInstancesAsync.ReportProgress(100, table);
         }
