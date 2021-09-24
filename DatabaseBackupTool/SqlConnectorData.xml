@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <connectionData>
-  <connection data_source="(local)\SQLEXPRESS" initial_catalog="" user_id="sa" password="sa1123">
+  <connection data_source="(local)\SQLEXPRESS" initial_catalog="" user_id="sa" password="sa123">
    <!-- 
     The above is the likely configuration for most client set ups.
    
