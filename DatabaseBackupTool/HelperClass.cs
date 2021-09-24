@@ -83,5 +83,14 @@ namespace DatabaseBackupTool
             }
             return conn;
         }
+
+        public static bool CanConnectToSQL()
+        {
+            SQLConnector connector = new SQLConnector(Dashboard.SqlInfoData.Data_Source, Dashboard.SqlInfoData.Initial_Catalog, Dashboard.SqlInfoData.User_Id, Dashboard.SqlInfoData.Password);
+            connector.InitializeConnection();
+            bool canBeOpened = connector.Open();
+            connector.Close();
+            return canBeOpened;
+        }
     }
 }
