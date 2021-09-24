@@ -70,9 +70,8 @@ namespace DatabaseBackupTool
         {
             Exception e = new Exception("Could not connect to SQL using the configured connection details. Check the configuration file for proper entry.");
             ErrorForm ef = new ErrorForm(e);
-            Logger.Error(e);
+            Logger.Error(e.Message);
             ef.ControlBox = false;
-
             ef.ShowDialog();
         }
     }
