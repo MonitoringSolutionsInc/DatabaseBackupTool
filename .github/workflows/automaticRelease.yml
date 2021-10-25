@@ -115,6 +115,13 @@ jobs:
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
 
+      - uses: 8BitJonny/gh-get-current-pr@1.2.0
+        id: PR
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ github.event.pull_request.head.sha }}
+          filterOutClosed: false
+
       - name: Create new release
         id: create_release
         uses: actions/create-release@v1
@@ -124,6 +131,7 @@ jobs:
           tag_name: ${{ env.newVersion }}
           release_name: Database Backup and Restore Tool
           body: |
+            # ${{ steps.PR.outputs.pr_title }}
             ### This release was created automatically though GitHub Actions.
             Please see README for documentation
             download and extract the zip to get started
