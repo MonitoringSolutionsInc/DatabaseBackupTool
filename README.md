@@ -1,4 +1,6 @@
 # Database Backup and Restore Tool
+![](https://img.shields.io/github/issues/MonitoringSolutionsInc/DatabaseBackupTool)
+
 
 #### Installation
 Visit the Build folder of the GitHub repo and download **DatabaseBackupTool.exe**, as well as **SqlConnector.dll**
