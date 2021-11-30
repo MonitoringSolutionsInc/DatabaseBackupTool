@@ -16,6 +16,8 @@ namespace DatabaseBackupTool
         SQLConnector connector;
         SQLConnector connector2;
         static public string default_text = "Default Text...";
+        private bool useTemporaryPath = false;
+        private static string temporaryBackupPath = @"C:\BackupAndRestoreTempFolder";
         private int percentComplete1 = 0;
         private int percentComplete3 = 0;
         DateTime startTime;
@@ -217,14 +219,12 @@ namespace DatabaseBackupTool
         private void startBackUp_Click(object sender, EventArgs e)
         {
             String path = backupDirectoryTextBox.Text;
-            bool createdPath = false;
 
             try
             {
                 if (!Directory.Exists(path)) //if directory does not exist
                 {
                     Directory.CreateDirectory(path);
-                    createdPath = true;
                 }
             }
             catch (Exception ex) //could fail if trying to put in a place it doesn't have permission to or make a new drive
@@ -237,16 +237,17 @@ namespace DatabaseBackupTool
                 return;
             }
 
-            if (!SqlServerHasWriteAccess())
+            if (SqlServerHasWriteAccess())
             {
-                String myMessage = "SQL Server does not have access to this folder:\n" + path;
-                Exception myException = new Exception(myMessage);
-                Logger.Error(myException);
-                if (createdPath)
-                    Directory.Delete(path);
-                ErrorForm ef = new ErrorForm(myException);
-                ef.ShowDialog();
-                return;
+                useTemporaryPath = false;
+            }
+            else
+            {
+                useTemporaryPath = true;
+                if (!Directory.Exists(temporaryBackupPath)) //if directory does not exist
+                {
+                    Directory.CreateDirectory(temporaryBackupPath);
+                }
             }
 
             if (backgroundWorker1.IsBusy)
@@ -263,7 +264,9 @@ namespace DatabaseBackupTool
             backupDirectoryTextBox.Enabled = false;
             filterTextBox.Enabled = false;
             chooseDirectoryButton.Enabled = false;
-            
+
+
+            Logger.Info($"Backup Starting: {backupList.Items.Count} Databases Slated for Backup.");
             backgroundFinished = false;
             startTime = DateTime.Now;
             startTime1 = DateTime.Now;
@@ -331,14 +334,20 @@ namespace DatabaseBackupTool
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            Logger.Info($"Backup Starting: {backupList.Items.Count} Databases Slated for Backup.");
+            string path;
+            if (useTemporaryPath)
+                path = temporaryBackupPath;
+            else
+                path = backupDirectoryTextBox.Text;
+
             for (int i = 0; i < backupList.Items.Count; i += 2)
             {
                 if (connector.Open())
                 {
                     try
                     {
-                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
+                        string file = $"{backupList.Items[i]}.BAK";
+                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{path}\\{file}\' WITH INIT";
                         var command = connector.CreateCommand(sql);
                         command.CommandTimeout = 0;
                         var reader = connector.ReadResults(command);
@@ -346,6 +355,8 @@ namespace DatabaseBackupTool
                         {
                             connector.Close();
                         }
+                        if (useTemporaryPath)
+                            File.Move($"{temporaryBackupPath}\\{file}", $"{backupDirectoryTextBox.Text}\\{file}");
                         Logger.Info($"Successfully Backed Up Database: {backupList.Items[i]}");
                     }
                     catch (Exception ex)
@@ -394,6 +405,8 @@ namespace DatabaseBackupTool
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
+                if (useTemporaryPath)
+                    Directory.Delete(temporaryBackupPath, true);
             }
             else
                 backgroundFinished = true;
@@ -402,6 +415,11 @@ namespace DatabaseBackupTool
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
+            string path;
+            if (useTemporaryPath)
+                path = temporaryBackupPath;
+            else
+                path = backupDirectoryTextBox.Text;
 
             for (int i = 1; i < backupList.Items.Count; i += 2)
             {
@@ -409,7 +427,8 @@ namespace DatabaseBackupTool
                 {
                     try
                     {
-                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{backupList.Items[i]}.BAK\' WITH INIT";
+                        string file = $"{backupList.Items[i]}.BAK";
+                        string sql = $"BACKUP DATABASE \"{backupList.Items[i]}\" TO DISK = \'{path}\\{file}\' WITH INIT";
                         // string sql = $"BACKUP DATABASE \"{s}\" TO DISK = \'{backupDirectoryTextBox.Text}\\{s}.BAK\'";
                         var command = connector2.CreateCommand(sql);
                         command.CommandTimeout = 0;
@@ -418,6 +437,8 @@ namespace DatabaseBackupTool
                         {
                             connector2.Close();
                         }
+                        if (useTemporaryPath)
+                            File.Move($"{temporaryBackupPath}\\{file}", $"{backupDirectoryTextBox.Text}\\{file}");
                         Logger.Info($"Successfully Backed Up Database: {backupList.Items[i]}");
                     }
                     catch (Exception ex)
@@ -466,6 +487,8 @@ namespace DatabaseBackupTool
                 Logger.Info($"Completed Backup in {time.Minutes} Minute(s) and {time.Seconds}.{time.Milliseconds} Seconds");
                 MessageBox.Show($"Backup Complete! You backed up {backupList.Items.Count} files!", "Backup Complete", MessageBoxButtons.OK);
                 System.Diagnostics.Process.Start(backupDirectoryTextBox.Text);
+                if (useTemporaryPath)
+                    Directory.Delete(temporaryBackupPath, true);
             }
             else
                 backgroundFinished = true;
