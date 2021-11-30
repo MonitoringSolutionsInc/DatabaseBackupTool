@@ -244,13 +244,13 @@ namespace DatabaseBackupTool
             else
             {
                 useTemporaryPath = true;
-                if (!Directory.Exists(temporaryBackupPath)) //if directory does not exist
+                if (!Directory.Exists(temporaryBackupPath))
                 {
                     Directory.CreateDirectory(temporaryBackupPath);
                 }
             }
 
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorker1.IsBusy || backgroundWorker3.IsBusy)
                 return;
 
             backupProgressBar.Value = 0;
