@@ -20,6 +20,8 @@ namespace DatabaseBackupTool
         private int percentComplete4 = 0;
         private int percentComplete5 = 0;
         private int backgroundFinished = 0;
+        private bool useTemporaryPath = false;
+        private static string temporaryBackupPath = @"C:\BackupAndRestoreTempFolder";
         private readonly object key = new object();
         private int i = -1; //must start at -1 or program misses zero'th index of backups
         DateTime startTime;
@@ -57,26 +59,25 @@ namespace DatabaseBackupTool
             if (backgroundWorkerRestore1.IsBusy)
                 return;
 
+            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
             progressBar1.Value = 0;
             taskbarInstance.SetProgressValue(0, 100);
             restoreDirectoryTextBox.Enabled = false;
             recursiveBox.Enabled = false;
 
-            bool exist, sqlAccess, hasBakFiles;
-            String path = restoreDirectoryTextBox.Text.Trim();
+            bool exist, hasBakFiles;
+            string path = restoreDirectoryTextBox.Text.Trim();
             
             exist = Directory.Exists(path);
-            sqlAccess = HelperClass.SqlServerHasReadAccess(path);
+            useTemporaryPath = !HelperClass.SqlServerHasReadAccess(path);
             hasBakFiles = HelperClass.ContainsBakFiles(path, recursiveBox.Checked);
 
-            if (!exist || !sqlAccess || !hasBakFiles)
+            if (!exist || !hasBakFiles)
             {
                 String myMessage = "";
 
                 if (!exist)
                     myMessage = "The following directory could not be opened:\n" + path;
-                else if (!sqlAccess)
-                    myMessage = "SQL Server does not have access to this folder:\n" + path;
                 else if (!hasBakFiles)
                     myMessage = "No files of type .BAK were found at this directory:\n" + path;
 
@@ -91,13 +92,32 @@ namespace DatabaseBackupTool
                 return;
             }
 
+            if (useTemporaryPath)
+            {
+                useTemporaryPath = true;
+                if (!Directory.Exists(temporaryBackupPath))
+                {
+                    Directory.CreateDirectory(temporaryBackupPath);
+                }
+                List<string> BAK_files = Directory.GetFiles(path, "*.bak", recursive).ToList();
+
+                foreach (string bakFile in BAK_files)
+                {
+                    FileInfo fileToCopy = new FileInfo(bakFile);
+                    fileToCopy.CopyTo($@"{temporaryBackupPath}\{fileToCopy.Name}");
+                }
+            }
 
             startRestore.Enabled = false;
             chooseDirectoryButton.Enabled = false;
             backgroundFinished = 0;
             startTime  = DateTime.Now;
-            SearchOption recursive = (SearchOption)Convert.ToInt32(recursiveBox.Checked);
-            filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+            
+            if (useTemporaryPath)
+                filesToRestore = Directory.GetFiles(temporaryBackupPath, "*.bak", recursive);
+            else
+                filesToRestore = Directory.GetFiles(restoreDirectoryTextBox.Text, "*.bak", recursive);
+
             startTime1 = DateTime.Now;
             startTime3 = DateTime.Now;
             startTime4 = DateTime.Now;
@@ -410,6 +430,8 @@ namespace DatabaseBackupTool
                 taskbarInstance.SetProgressValue(100, 100);
                 progressBarLabel.Text = $"100% Complete";
                 backgroundWorkerPathCheck.RunWorkerAsync();
+                if (useTemporaryPath)
+                    Directory.Delete(temporaryBackupPath, true);
             }
             else
                 backgroundFinished++;
