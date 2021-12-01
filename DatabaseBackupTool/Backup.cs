@@ -115,15 +115,15 @@ namespace DatabaseBackupTool
                         databases.Add(reader[0].ToString());
                     }
                     reader.Close();
-                    if (connector.GetConnectionState() == ConnectionState.Open)
-                    {
+                    if (connector.GetConnectionState() != ConnectionState.Closed)
                         connector.Close();
-                    }
                 }
                 return databases;
             }
             catch (Exception e)
             {
+                if (connector.GetConnectionState() == ConnectionState.Open)
+                    connector.Close();
                 Console.WriteLine($"{e}: There was an error while retrieving the database list.");
                 return databases;
             }
@@ -279,10 +279,8 @@ namespace DatabaseBackupTool
         {
             try
             {
-                if (connector.GetConnectionState() == ConnectionState.Closed)
+                if (connector.GetConnectionState() != ConnectionState.Open)
                     connector.Open();
-                else
-                    connector.Close();
 
                 String lastSys2 = backupList.Items[backupList.Items.Count - 1].ToString();
                 String tempDatabase = "SqlWriteAccess";
@@ -292,9 +290,7 @@ namespace DatabaseBackupTool
                 command.CommandTimeout = 0;
                 var reader = connector.ReadResults(command);
 
-                if (connector.GetConnectionState() == ConnectionState.Closed)
-                    connector.Open();
-                else
+                if (connector.GetConnectionState() != ConnectionState.Closed)
                     connector.Close();
 
                 if (File.Exists(file))
@@ -307,6 +303,8 @@ namespace DatabaseBackupTool
             }
             catch
             {
+                if (connector.GetConnectionState() == ConnectionState.Open)
+                    connector.Close();
                 return false;
             }
         }
