@@ -354,7 +354,7 @@ namespace DatabaseBackupTool
                             connector.Close();
                         }
                         if (useTemporaryPath)
-                            File.Move($"{temporaryBackupPath}\\{file}", $"{backupDirectoryTextBox.Text}\\{file}");
+                            File.Copy($"{temporaryBackupPath}\\{file}", $"{backupDirectoryTextBox.Text}\\{file}", true);
                         Logger.Info($"Successfully Backed Up Database: {backupList.Items[i]}");
                     }
                     catch (Exception ex)
