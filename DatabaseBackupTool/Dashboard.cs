@@ -51,6 +51,7 @@ namespace DatabaseBackupTool
         private void databaseBackupToolBtn_Click(object sender, EventArgs e)
         {
             LoadSqlConnectionXml();
+            ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
             Backup backup = new Backup();
             backup.ShowDialog();
         }
@@ -58,6 +59,7 @@ namespace DatabaseBackupTool
         private void restoreBackupToolBtn_Click(object sender, EventArgs e)
         {
             LoadSqlConnectionXml();
+            ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
             Restore restore = new Restore();
             restore.ShowDialog();
         }
@@ -84,10 +86,14 @@ namespace DatabaseBackupTool
 
         private void ServerInstanceComboBox_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            int i = ServerInstanceComboBox.SelectedIndex;
-            DataTable data = (DataTable)ServerInstanceComboBox.DataSource;
-            DataRow row = data.Rows[i];
-            SqlInfoData.Data_Source = $"{row["ServerName"]}\\{row["InstanceName"]}";
+            try
+            {
+                int i = ServerInstanceComboBox.SelectedIndex;
+                DataTable data = (DataTable)ServerInstanceComboBox.DataSource;
+                DataRow row = data.Rows[i];
+                SqlInfoData.Data_Source = $"{row["ServerName"]}\\{row["InstanceName"]}";
+            }
+            catch { }
         }
     }
 }
