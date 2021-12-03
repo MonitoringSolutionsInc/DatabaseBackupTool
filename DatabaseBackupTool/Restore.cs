@@ -1,8 +1,9 @@
 ﻿using SqlConnector;
 using System;
-using System.Drawing;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -157,7 +158,7 @@ namespace DatabaseBackupTool
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            BG_DoWork(worker, "BG3");           
+            BG_DoWork(worker, "BG3");
         }
 
         private void backgroundWorker3_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -193,7 +194,7 @@ namespace DatabaseBackupTool
             BackgroundWorker worker = sender as BackgroundWorker;
             BG_DoWork(worker, "BG5");
         }
-        
+
         private void backgroundWorker5_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             percentComplete5 = e.ProgressPercentage;
@@ -254,7 +255,7 @@ namespace DatabaseBackupTool
                 return;
             }
 
-            
+
             while (i < filesToRestore.Length)
             {
                 lock (key)
@@ -303,7 +304,7 @@ namespace DatabaseBackupTool
         {
             List<string> databases = new List<string>();
             List<string> fileList = new List<string>();
-            
+
             foreach (var db in filesToRestore)
             {
                 fileList.Add(db.Split('\\').Last().Split('.').First());
@@ -316,10 +317,10 @@ namespace DatabaseBackupTool
                 databases.Add(dbResults[0].ToString());
             }
             conn.Close();
-            
+
             IEnumerable<string> dbInSqlAndInRestoreList = databases.Intersect<string>(fileList);
-            
-            while (WorkersAreFinishingUp());
+
+            while (WorkersAreFinishingUp()) ;
 
             int i = 0;
             foreach (string dbName in dbInSqlAndInRestoreList)
@@ -405,7 +406,7 @@ namespace DatabaseBackupTool
                     Console.WriteLine("Idk what happened");
                     time = DateTime.Now - startTime;
                     break;
-            }                
+            }
 
 
             Console.WriteLine($"{work}% {who} restored a file in {time.Seconds}.{time.Milliseconds} seconds");
