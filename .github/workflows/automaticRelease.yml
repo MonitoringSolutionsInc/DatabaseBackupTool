@@ -45,11 +45,10 @@ jobs:
         shell: pwsh
         run: |
           $path = "${{ github.workspace }}\${{ env.FOLDER }}\bin\Release\"
-          [string]$FilesToZip = (Get-ChildItem -path ${{ github.workspace }}\${{ env.FOLDER }}\FilesToZip.xml).fullname
-          [xml]$xml = Get-Content -path $FilesToZip -Raw
+          $dll = Get-ChildItem -Path .\${{ env.FOLDER }}\bin\Release\ -Include *.dll,*.exe -name -Recurse
           $dest = "$path" + "${{ env.FOLDER }}" + ".zip"
           $i = 0
-          foreach ($element in $xml.list.include){
+          foreach ($element in $dll){
             if ($i -eq 0){
               $compress = @{
                 Path = "$path$element"
@@ -64,7 +63,6 @@ jobs:
               Compress-Archive -Path "$path$element" -Update -DestinationPath "$dest"
             }
           }
-          ls "$path"
 
       - uses: oprypin/find-latest-tag@v1
         id: latestVersion
@@ -117,6 +115,13 @@ jobs:
           echo "newVersion=$vstring" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "new version: $vstring"
 
+      - uses: 8BitJonny/gh-get-current-pr@1.2.0
+        id: PR
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ github.event.pull_request.head.sha }}
+          filterOutClosed: false
+
       - name: Create new release
         id: create_release
         uses: actions/create-release@v1
@@ -126,6 +131,7 @@ jobs:
           tag_name: ${{ env.newVersion }}
           release_name: Database Backup and Restore Tool
           body: |
+            # ${{ steps.PR.outputs.pr_title }}
             ### This release was created automatically though GitHub Actions.
             Please see README for documentation
             download and extract the zip to get started

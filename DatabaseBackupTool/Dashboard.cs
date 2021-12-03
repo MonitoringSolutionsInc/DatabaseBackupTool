@@ -49,17 +49,38 @@ namespace DatabaseBackupTool
         private void databaseBackupToolBtn_Click(object sender, EventArgs e)
         {
             LoadSqlConnectionXml();
-            ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
-            Backup backup = new Backup();
-            backup.ShowDialog();
+            if (HelperClass.CanConnectToSQL())
+            {
+                ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
+                Backup backup = new Backup();
+                backup.ShowDialog();
+            } else
+            {
+                DisplayConnectionErrorForm();
+            }
         }
 
         private void restoreBackupToolBtn_Click(object sender, EventArgs e)
         {
             LoadSqlConnectionXml();
-            ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
-            Restore restore = new Restore();
-            restore.ShowDialog();
+            if (HelperClass.CanConnectToSQL())
+            {
+                ServerInstanceComboBox_SelectionChangeCommitted(sender, e);
+                Restore restore = new Restore();
+                restore.ShowDialog();
+            } else
+            {
+                DisplayConnectionErrorForm();
+            }
+        }
+
+        private void DisplayConnectionErrorForm()
+        {
+            Exception e = new Exception("Could not connect to SQL using the configured connection details. Check the configuration file for proper entry.");
+            ErrorForm ef = new ErrorForm(e);
+            Logger.Error(e.Message);
+            ef.ControlBox = false;
+            ef.ShowDialog();
         }
 
         private void LoadSqlServerInstancesAsync_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
