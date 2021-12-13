@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: |
           $path = "${{ github.workspace }}\${{ env.FOLDER }}\bin\Release\"
-          $dll = Get-ChildItem -Path .\${{ env.FOLDER }}\bin\Release\ -Include *.dll,*.exe -name -Recurse
+          $dll = Get-ChildItem -Path .\${{ env.FOLDER }}\bin\Release\ -Exclude *.xml,*.pdb -name -Recurse
           $dest = "$path" + "${{ env.FOLDER }}" + ".zip"
           $i = 0
           foreach ($element in $dll){
