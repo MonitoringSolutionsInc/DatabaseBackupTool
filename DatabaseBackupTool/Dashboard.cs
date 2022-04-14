@@ -74,5 +74,11 @@ namespace DatabaseBackupTool
             ef.ControlBox = false;
             ef.ShowDialog();
         }
+
+        private void Dashboard_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (System.IO.Directory.Exists(@"C:\BackupAndRestoreTempFolder"))
+                System.IO.Directory.Delete(@"C:\BackupAndRestoreTempFolder", recursive: true);
+        }
     }
 }
