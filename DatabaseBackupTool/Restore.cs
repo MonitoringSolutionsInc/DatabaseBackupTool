@@ -50,7 +50,8 @@ namespace DatabaseBackupTool
         private void chooseDirectoryButton_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.ShowDialog();
+            fbd.SelectedPath = restoreDirectoryTextBox.Text;
+            fbd.ShowDialog(true);
             restoreDirectoryTextBox.Text = fbd.SelectedPath;
         }
 
