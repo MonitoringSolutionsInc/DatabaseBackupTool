@@ -313,7 +313,7 @@ namespace DatabaseBackupTool
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             fbd.SelectedPath = backupDirectoryTextBox.Text;
-            fbd.ShowDialog();
+            fbd.ShowDialog(true);
             backupDirectoryTextBox.Text = fbd.SelectedPath;
         }
 
