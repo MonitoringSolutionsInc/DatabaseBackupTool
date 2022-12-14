@@ -9,7 +9,7 @@ jobs:
   Auto_create_new_release:
     #uncomment the line below to make this job only run if the PR has been merged (NOTE: Requires on: pull_request: [closed] )
     if: ${{ !(contains( github.event.pull_request.labels.*.name, 'no code changes')) && github.event.pull_request.merged == true }}
-    runs-on: windows-latest
+    runs-on: windows-2019
     env:
       FILENAME: DatabaseToolKit
       FOLDER: DatabaseBackupTool
@@ -150,18 +150,3 @@ jobs:
           asset_path: ${{ github.workspace }}\${{ env.FOLDER }}\bin\Release\${{ env.Folder }}.zip
           asset_name: ${{ env.Folder }}.zip
           asset_content_type: application/zip
-
-
-  PR_close_no_merge:
-    # this job will only run if the PR has been closed without being merged
-    if: github.event.pull_request.merged == false
-    runs-on: windows-latest
-    steps:
-    - run: |
-        echo PR #${{ github.event.number }} has been closed without being merged
-        
-  PR_closed_or_merged_NO_PACKAGE_UPDATE:
-    if: ${{ contains( github.event.pull_request.labels.*.name, 'no code changes') }}  
-    runs-on: windows-latest
-    steps:
-    - run: echo "Hello, if you are seeing this text that means the automatic version incremenet did not take place because of the labels attached to this pull request. Namely no code changes"
