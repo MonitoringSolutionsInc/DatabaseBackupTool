@@ -105,7 +105,7 @@ namespace DatabaseBackupTool
                 foreach (string bakFile in BAK_files)
                 {
                     FileInfo fileToCopy = new FileInfo(bakFile);
-                    fileToCopy.CopyTo($@"{temporaryBackupPath}\{fileToCopy.Name}");
+                    fileToCopy.CopyTo($@"{temporaryBackupPath}\{fileToCopy.Name}", overwrite: true);
                 }
             }
 
