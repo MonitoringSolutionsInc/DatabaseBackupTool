@@ -93,37 +93,37 @@ namespace DatabaseBackupTool
             // recursiveBox
             // 
             this.recursiveBox.AutoSize = true;
-            this.recursiveBox.Location = new System.Drawing.Point(104, 76);
+            this.recursiveBox.Location = new System.Drawing.Point(47, 76);
             this.recursiveBox.Name = "recursiveBox";
-            this.recursiveBox.Size = new System.Drawing.Size(74, 17);
+            this.recursiveBox.Size = new System.Drawing.Size(137, 17);
             this.recursiveBox.TabIndex = 28;
-            this.recursiveBox.Text = "Recursive";
+            this.recursiveBox.Text = "Include Subdirectories?";
             this.recursiveBox.UseVisualStyleBackColor = true;
             // 
-            // backgroundWorker1
+            // backgroundWorkerRestore1
             // 
             this.backgroundWorkerRestore1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             this.backgroundWorkerRestore1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
             this.backgroundWorkerRestore1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
-            // backgroundWorker2
+            // backgroundWorkerPathCheck
             // 
             this.backgroundWorkerPathCheck.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker2_DoWork);
             this.backgroundWorkerPathCheck.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker2_ProgressChanged);
             // 
-            // backgroundWorker3
+            // backgroundWorkerRestore2
             // 
             this.backgroundWorkerRestore2.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker3_DoWork);
             this.backgroundWorkerRestore2.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker3_ProgressChanged);
             this.backgroundWorkerRestore2.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker3_RunWorkerCompleted);
             // 
-            // backgroundWorker4
+            // backgroundWorkerRestore3
             // 
             this.backgroundWorkerRestore3.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker4_DoWork);
             this.backgroundWorkerRestore3.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker4_ProgressChanged);
             this.backgroundWorkerRestore3.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker4_RunWorkerCompleted);
             // 
-            // backgroundWorker5
+            // backgroundWorkerRestore4
             // 
             this.backgroundWorkerRestore4.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker5_DoWork);
             this.backgroundWorkerRestore4.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker5_ProgressChanged);
